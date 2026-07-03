@@ -17,10 +17,15 @@ never use xcodebuild; build with `swift build` and `Scripts/build_app.sh`).
   `AsrManager.loadModels(_:)`, `transcribe(_, decoderState: &state)` with
   `TdtDecoderState.make()`. Check `.build/checkouts/FluidAudio` before assuming.
 - The `E5RT ... STL exception` stderr line from CoreML is harmless noise.
-- App is ad-hoc signed → every rebuild changes cdhash → macOS silently
-  invalidates Accessibility/Input Monitoring. After each rebuild the user must
-  re-toggle Accessibility for LocalFlow. If permission prompts stop appearing:
+- App is signed with a self-signed "LocalFlow Dev" identity (created by
+  Scripts/make_signing_cert.sh, lives in the login keychain) so TCC permission
+  grants SURVIVE rebuilds. Never sign ad-hoc unless the identity is gone —
+  ad-hoc cdhashes change per build and silently invalidate Accessibility.
+  If permission prompts stop appearing:
   `tccutil reset Accessibility com.localflow.app` (and `ListenEvent`).
+  Signing a bundle that has already been LAUNCHED fails with "resource fork /
+  detritus not allowed" (SIP-protected provenance xattr) — always rebuild the
+  bundle fresh via Scripts/build_app.sh instead of re-signing in place.
 - Input Monitoring is OPTIONAL: HotkeyListener falls back to NSEvent global
   monitors (Accessibility-only) for modifier-key hotkeys. CGEventTap is used
   when Input Monitoring is granted; F-keys require it.
