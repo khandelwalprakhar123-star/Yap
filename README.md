@@ -78,16 +78,17 @@ open dist/LocalFlow.app
 ```
 
 A mic icon appears in the menu bar. On first launch an onboarding window walks
-you through the three permissions (System Settings → Privacy & Security):
+you through the permissions (System Settings → Privacy & Security):
 
 | Permission | Why | Pane |
 |---|---|---|
 | **Microphone** | record your voice while the key is held | Microphone |
-| **Input Monitoring** | see the global push-to-talk key in any app | Input Monitoring |
-| **Accessibility** | synthesize the Cmd+V paste into the focused app | Accessibility |
+| **Accessibility** | detect the push-to-talk key + synthesize the Cmd+V paste | Accessibility |
+| Input Monitoring *(optional)* | only needed for F-key hotkeys (F13–F15) | Input Monitoring |
 
-Grant all three (use the buttons in the onboarding window), then **quit and
-reopen LocalFlow** so the hotkey tap starts cleanly.
+If LocalFlow doesn't appear in a pane's list, click **+** and add
+`dist/LocalFlow.app` manually. After granting, **quit and reopen LocalFlow**
+so the hotkey listener starts cleanly.
 
 ### 5. Use it
 
@@ -113,9 +114,15 @@ keeps the raw transcript if the model's output shrinks suspiciously.
 
 ## Troubleshooting
 
-- **Hotkey does nothing** → Input Monitoring not granted, or the app was rebuilt
-  (ad-hoc signatures change per build, macOS then silently revokes Input
-  Monitoring/Accessibility). Re-toggle the permission for LocalFlow and relaunch.
+- **Hotkey does nothing** → Accessibility not granted, or the app was rebuilt
+  (ad-hoc signatures change per build, macOS then silently revokes
+  Accessibility/Input Monitoring). Re-toggle the permission for LocalFlow and
+  relaunch.
+- **Permission prompt never appears / app missing from the pane** → macOS has a
+  stale entry from an older build. Reset it, then relaunch and grant again:
+  `tccutil reset Accessibility com.localflow.app`
+  (same with `ListenEvent` for Input Monitoring), or add the app manually
+  with the pane's **+** button.
 - **Text doesn't appear but the icon cycles** → grant Accessibility; or switch
   Injection to "Type keystrokes" for terminals/apps that block synthetic Cmd+V.
 - **`E5RT encountered an STL exception` in CLI output** → harmless CoreML/ANE

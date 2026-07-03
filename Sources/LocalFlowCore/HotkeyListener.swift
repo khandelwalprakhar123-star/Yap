@@ -17,15 +17,27 @@ public final class HotkeyListener {
         ("F15", 113, false),
     ]
 
+    public enum Backend: String {
+        case eventTap = "event tap (Input Monitoring)"
+        case nsEventMonitor = "NSEvent monitor (Accessibility)"
+    }
+
     public var onPress: (() -> Void)?
     public var onRelease: (() -> Void)?
+    public private(set) var backend: Backend?
 
     private var tap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+    private var globalMonitor: Any?
+    private var localMonitor: Any?
     private let keyCode: Int64
     private let holdToTalk: Bool
     private var keyIsDown = false
     private var toggledOn = false
+
+    private var isModifierKey: Bool {
+        Self.knownKeys.first { $0.code == keyCode }?.isModifier ?? false
+    }
 
     public init(keyCode: Int64, holdToTalk: Bool) {
         self.keyCode = keyCode
@@ -42,8 +54,30 @@ public final class HotkeyListener {
         CGRequestListenEventAccess()
     }
 
+    /// Prefers a CGEventTap (needs Input Monitoring). If that can't be created,
+    /// falls back to NSEvent global monitors, which macOS allows with just the
+    /// Accessibility permission for modifier keys (flagsChanged events).
     public func start() throws {
         stop()
+        if (try? startEventTap()) != nil {
+            backend = .eventTap
+            return
+        }
+        if isModifierKey, AXIsProcessTrusted() {
+            startNSEventMonitors()
+            backend = .nsEventMonitor
+            return
+        }
+        throw NSError(domain: "LocalFlow", code: 20, userInfo: [
+            NSLocalizedDescriptionKey: """
+                Could not listen for the hotkey. Grant Accessibility (enough for \
+                modifier-key hotkeys) or Input Monitoring (needed for F-keys) in \
+                System Settings → Privacy & Security, then relaunch.
+                """
+        ])
+    }
+
+    private func startEventTap() throws {
         let mask: CGEventMask =
             (1 << CGEventType.flagsChanged.rawValue)
             | (1 << CGEventType.keyDown.rawValue)
@@ -64,11 +98,8 @@ public final class HotkeyListener {
             callback: callback,
             userInfo: Unmanaged.passUnretained(self).toOpaque()
         ) else {
-            throw NSError(domain: "LocalFlow", code: 20, userInfo: [
-                NSLocalizedDescriptionKey: """
-                    Could not create the global hotkey event tap. Grant Input Monitoring in \
-                    System Settings → Privacy & Security → Input Monitoring, then relaunch.
-                    """
+            throw NSError(domain: "LocalFlow", code: 21, userInfo: [
+                NSLocalizedDescriptionKey: "Could not create the global hotkey event tap."
             ])
         }
 
@@ -86,7 +117,47 @@ public final class HotkeyListener {
         }
         tap = nil
         runLoopSource = nil
+        if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
+        if let localMonitor { NSEvent.removeMonitor(localMonitor) }
+        globalMonitor = nil
+        localMonitor = nil
+        backend = nil
         keyIsDown = false
+    }
+
+    // MARK: - NSEvent monitor backend
+
+    private func startNSEventMonitors() {
+        let mask: NSEvent.EventTypeMask = [.flagsChanged, .keyDown, .keyUp]
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask) { [weak self] event in
+            self?.handleNSEvent(event)
+        }
+        // Global monitors don't fire while our own app is frontmost.
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: mask) { [weak self] event in
+            self?.handleNSEvent(event)
+            return event
+        }
+    }
+
+    private func handleNSEvent(_ event: NSEvent) {
+        guard Int64(event.keyCode) == keyCode else { return }
+        let isDown: Bool
+        switch event.type {
+        case .flagsChanged:
+            let relevantFlags: NSEvent.ModifierFlags
+            switch keyCode {
+            case 54, 55: relevantFlags = .command
+            case 58, 61: relevantFlags = .option
+            case 59, 62: relevantFlags = .control
+            case 56, 60: relevantFlags = .shift
+            default: relevantFlags = []
+            }
+            isDown = !relevantFlags.isEmpty && event.modifierFlags.contains(relevantFlags)
+        case .keyDown: isDown = true
+        case .keyUp: isDown = false
+        default: return
+        }
+        process(isDown: isDown)
     }
 
     private func handle(type: CGEventType, event: CGEvent) {
@@ -117,6 +188,10 @@ public final class HotkeyListener {
         default: return
         }
 
+        process(isDown: isDown)
+    }
+
+    private func process(isDown: Bool) {
         guard isDown != keyIsDown else { return }  // ignore key-repeat
         keyIsDown = isDown
 

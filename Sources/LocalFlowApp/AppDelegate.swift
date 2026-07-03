@@ -41,8 +41,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func allPermissionsGranted() -> Bool {
+        // Input Monitoring is optional: with Accessibility granted, the hotkey
+        // falls back to an NSEvent monitor for modifier keys.
         AudioRecorder.microphonePermissionGranted()
-            && HotkeyListener.inputMonitoringGranted()
             && TextInjector.accessibilityGranted()
     }
 

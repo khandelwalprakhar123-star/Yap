@@ -14,7 +14,7 @@ struct OnboardingView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("LocalFlow needs three permissions")
+            Text("LocalFlow needs two permissions")
                 .font(.title2).bold()
             Text("Everything runs on this Mac. No audio or text ever leaves your machine.")
                 .foregroundStyle(.secondary)
@@ -30,23 +30,26 @@ struct OnboardingView: View {
                 pane: "Privacy_Microphone"
             )
             permissionRow(
-                granted: inputMonitoringGranted,
-                title: "Input Monitoring",
-                detail: "Detects the global push-to-talk key (Right Option) in any app.",
-                buttonTitle: "Grant",
-                action: { HotkeyListener.requestInputMonitoring() },
-                pane: "Privacy_ListenEvent"
-            )
-            permissionRow(
                 granted: accessibilityGranted,
                 title: "Accessibility",
-                detail: "Pastes the transcribed text into the app you're using.",
+                detail: "Detects the push-to-talk key and pastes the transcribed text. "
+                    + "In System Settings, find LocalFlow in the list and switch it on — "
+                    + "if it's missing, click + and add dist/LocalFlow.app.",
                 buttonTitle: "Grant",
                 action: { TextInjector.requestAccessibility() },
                 pane: "Privacy_Accessibility"
             )
+            permissionRow(
+                granted: inputMonitoringGranted,
+                title: "Input Monitoring (optional)",
+                detail: "Only needed for F-key hotkeys (F13–F15). Modifier keys like "
+                    + "Right Option work with Accessibility alone.",
+                buttonTitle: "Grant",
+                action: { HotkeyListener.requestInputMonitoring() },
+                pane: "Privacy_ListenEvent"
+            )
 
-            if micGranted && inputMonitoringGranted && accessibilityGranted {
+            if micGranted && accessibilityGranted {
                 Label("All set — hold your hotkey anywhere and start talking.",
                       systemImage: "checkmark.seal.fill")
                     .foregroundStyle(.green)
@@ -63,7 +66,7 @@ struct OnboardingView: View {
             micGranted = AudioRecorder.microphonePermissionGranted()
             inputMonitoringGranted = HotkeyListener.inputMonitoringGranted()
             accessibilityGranted = TextInjector.accessibilityGranted()
-            if micGranted && inputMonitoringGranted && accessibilityGranted {
+            if micGranted && accessibilityGranted {
                 onAllGranted()
             }
         }

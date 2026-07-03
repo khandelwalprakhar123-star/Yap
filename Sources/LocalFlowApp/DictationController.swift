@@ -77,7 +77,10 @@ final class DictationController: ObservableObject {
 
     @discardableResult
     func startHotkeyIfPossible() -> Bool {
-        guard HotkeyListener.inputMonitoringGranted() else { return false }
+        // Input Monitoring enables the event tap; Accessibility alone is enough
+        // for the NSEvent fallback with modifier-key hotkeys.
+        guard HotkeyListener.inputMonitoringGranted() || TextInjector.accessibilityGranted()
+        else { return false }
         hotkey?.stop()
         let listener = HotkeyListener(keyCode: config.hotkeyKeyCode, holdToTalk: config.holdToTalk)
         listener.onPress = { [weak self] in
