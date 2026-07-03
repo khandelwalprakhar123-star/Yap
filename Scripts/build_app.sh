@@ -33,11 +33,17 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-echo "▸ Codesigning (ad-hoc)..."
-codesign --force --sign - --identifier com.localflow.app "$APP"
+# A stable identity keeps the same TCC (permissions) grant across rebuilds.
+# Created once by Scripts/make_signing_cert.sh; ad-hoc is the fallback, but
+# then Accessibility must be re-granted after every rebuild.
+if security find-identity -v -p codesigning 2>/dev/null | grep -q "LocalFlow Dev"; then
+    echo "▸ Codesigning with stable identity 'LocalFlow Dev'..."
+    codesign --force --sign "LocalFlow Dev" --identifier com.localflow.app "$APP"
+else
+    echo "▸ Codesigning (ad-hoc — permissions will need re-granting after rebuilds)..."
+    codesign --force --sign - --identifier com.localflow.app "$APP"
+fi
 
 echo "✓ Built $APP"
 echo
 echo "Run it with:   open $PWD/$APP"
-echo "Note: after every rebuild, macOS may ask you to re-grant Input Monitoring"
-echo "and Accessibility (the ad-hoc signature changes with each build)."

@@ -114,10 +114,10 @@ keeps the raw transcript if the model's output shrinks suspiciously.
 
 ## Troubleshooting
 
-- **Hotkey does nothing** → Accessibility not granted, or the app was rebuilt
-  (ad-hoc signatures change per build, macOS then silently revokes
-  Accessibility/Input Monitoring). Re-toggle the permission for LocalFlow and
-  relaunch.
+- **Hotkey does nothing** → Accessibility not granted. Re-toggle the permission
+  for LocalFlow and relaunch. (Permissions persist across rebuilds as long as
+  the `LocalFlow Dev` signing identity exists — create it once with
+  `./Scripts/make_signing_cert.sh`.)
 - **Permission prompt never appears / app missing from the pane** → macOS has a
   stale entry from an older build. Reset it, then relaunch and grant again:
   `tccutil reset Accessibility com.localflow.app`
