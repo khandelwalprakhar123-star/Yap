@@ -49,6 +49,9 @@ struct SettingsView: View {
             Section("Transcript cleanup (Stage B — Ollama)") {
                 Toggle("Clean up transcript with local LLM", isOn: $draft.cleanupEnabled)
                 if draft.cleanupEnabled {
+                    Toggle("Allow paragraph breaks", isOn: $draft.paragraphBreaks)
+                    Text("Off = newlines from the cleanup model are flattened to spaces (recommended for chat/Slack).")
+                        .font(.caption).foregroundStyle(.secondary)
                     if installedModels.isEmpty {
                         TextField("Model", text: $draft.ollamaModel)
                         Text("Ollama not reachable — start it with `ollama serve`")
@@ -76,6 +79,10 @@ struct SettingsView: View {
                     Text("Paste (Cmd+V, clipboard restored)").tag("paste")
                     Text("Type keystrokes (slower, max compatibility)").tag("type")
                 }
+            }
+
+            Section("Feedback") {
+                Toggle("Show floating “Listening…” indicator", isOn: $draft.showHUD)
             }
 
             HStack {

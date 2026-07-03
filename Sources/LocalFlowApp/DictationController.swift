@@ -101,6 +101,9 @@ final class DictationController: ObservableObject {
 
     var hotkeyActive: Bool { hotkey != nil }
 
+    /// Live mic input peak (0...1) for the recording HUD.
+    var micLevel: Float { recorder.currentLevel }
+
     /// Re-save config, then rebuild every component that depends on it.
     func apply(config newConfig: AppConfig) {
         let asrChanged = newConfig.asrModelVersion != config.asrModelVersion

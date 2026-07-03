@@ -14,6 +14,11 @@ public struct AppConfig: Codable, Equatable {
     public var cleanupTimeoutSeconds: Double = 10
     /// Master switch for the Stage B cleanup pass.
     public var cleanupEnabled: Bool = true
+    /// Allow the cleanup model to insert paragraph breaks. Off by default:
+    /// small models sprinkle random newlines into short dictations.
+    public var paragraphBreaks: Bool = false
+    /// Show the floating "Listening…" pill while recording/processing.
+    public var showHUD: Bool = true
 
     /// "v2" = Parakeet TDT 0.6B v2 (English, best accuracy)
     /// "v3" = Parakeet TDT 0.6B v3 (25 languages)

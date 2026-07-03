@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let controller = DictationController()
+    private let hud = RecordingHUD()
     private var statusItem: NSStatusItem!
     private var settingsWindow: NSWindow?
     private var onboardingWindow: NSWindow?
@@ -16,8 +17,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.delegate = self
         statusItem.menu = menu
 
+        hud.levelProvider = { [weak self] in self?.controller.micLevel ?? 0 }
         controller.onStateChange = { [weak self] state in
-            self?.updateIcon(for: state)
+            guard let self else { return }
+            self.updateIcon(for: state)
+            if self.controller.config.showHUD {
+                self.hud.update(state: state)
+            } else {
+                self.hud.hide()
+            }
         }
         updateIcon(for: controller.state)
         controller.startup()

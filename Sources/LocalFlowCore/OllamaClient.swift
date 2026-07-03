@@ -100,7 +100,10 @@ public struct OllamaClient {
             throw ServerError(message: "Ollama returned no message content")
         }
 
-        let cleaned = Self.stripModelWrapping(content)
+        var cleaned = Self.stripModelWrapping(content)
+        if !config.paragraphBreaks {
+            cleaned = Self.collapseNewlines(cleaned)
+        }
         // Guardrail: if the model went off-script (huge length change), keep the raw text.
         if cleaned.isEmpty || cleaned.count < transcript.count / 3 {
             return transcript
@@ -108,7 +111,8 @@ public struct OllamaClient {
         return cleaned
     }
 
-    /// Removes chat-model artifacts: thinking tags, code fences, quote wrapping.
+    /// Removes chat-model artifacts: thinking tags, code fences, quote wrapping,
+    /// and "Here is the corrected text:" style preambles.
     static func stripModelWrapping(_ text: String) -> String {
         var result = text
         if let range = result.range(of: "</think>") {
@@ -120,9 +124,24 @@ public struct OllamaClient {
                 .replacingOccurrences(of: "```[a-z]*\n?", with: "", options: .regularExpression)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
         }
+        // Preamble like "Here is the corrected text:" / "Sure! Cleaned transcript:" —
+        // either on its own first line, or prefixed to the content before a colon.
+        let preamble = #"^(?i)(sure[,!.]?\s*)?(here('s| is)\s+)?(the\s+|your\s+|a\s+)?"#
+            + #"(correct(ed)?|clean(ed)?(-|\s)?(up)?|fixed|polished|revised|final)\s*"#
+            + #"(text|transcript|version|output)\s*:\s*"#
+        result = result.replacingOccurrences(
+            of: preamble, with: "", options: .regularExpression)
+        result = result.trimmingCharacters(in: .whitespacesAndNewlines)
         if result.hasPrefix("\""), result.hasSuffix("\""), result.count > 1 {
             result = String(result.dropFirst().dropLast())
         }
         return result
+    }
+
+    /// Small models sprinkle spurious paragraph breaks into short dictations;
+    /// flatten every newline run into a single space.
+    static func collapseNewlines(_ text: String) -> String {
+        text.replacingOccurrences(
+            of: #"\s*\n+\s*"#, with: " ", options: .regularExpression)
     }
 }
