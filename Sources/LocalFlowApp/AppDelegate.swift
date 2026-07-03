@@ -27,6 +27,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
+    /// Fires when the user double-clicks LocalFlow.app while it's already
+    /// running. Menu-bar apps show nothing by default, which reads as
+    /// "the app is not opening" — so always surface a window.
+    func applicationShouldHandleReopen(_ sender: NSApplication,
+                                       hasVisibleWindows: Bool) -> Bool {
+        if allPermissionsGranted() {
+            showSettings()
+        } else {
+            showOnboarding()
+        }
+        return true
+    }
+
     private func allPermissionsGranted() -> Bool {
         AudioRecorder.microphonePermissionGranted()
             && HotkeyListener.inputMonitoringGranted()
@@ -151,6 +164,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             backing: .buffered, defer: false)
         window.title = title
         window.isReleasedWhenClosed = false
+        // Menu-bar (.accessory) apps have no dock presence, so their windows
+        // can open buried under other apps; keep ours on top.
+        window.level = .floating
         return window
     }
 
