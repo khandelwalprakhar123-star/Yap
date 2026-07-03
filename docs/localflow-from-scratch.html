@@ -1,0 +1,1512 @@
+<title>LocalFlow, From Electrons Up</title>
+
+<style>
+:root {
+  --bg: #F6F7F5;
+  --surface: #FFFFFF;
+  --surface-2: #F0F2EF;
+  --ink: #191C1A;
+  --ink-soft: #4C5551;
+  --ink-faint: #7C847F;
+  --rule: #E1E5E0;
+  --rule-strong: #CDD3CD;
+  --accent: #0C7C6C;
+  --accent-ink: #095F53;
+  --accent-wash: #E4F1EC;
+  --sec: #0C7C6C;
+  --sec-wash: #E4F1EC;
+  --par: #3A5CCC;
+  --par-wash: #E7EBFA;
+  --def: #A9691E;
+  --def-wash: #F6ECDD;
+  --shadow: 0 1px 2px rgba(20,30,26,.05), 0 6px 22px rgba(20,30,26,.06);
+  --measure: 68ch;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0E1412;
+    --surface: #141C19;
+    --surface-2: #101915;
+    --ink: #E8EDE9;
+    --ink-soft: #A6B2AB;
+    --ink-faint: #6F7C75;
+    --rule: #24302B;
+    --rule-strong: #33443C;
+    --accent: #3DD9B4;
+    --accent-ink: #6FE8CB;
+    --accent-wash: #12241E;
+    --sec: #3DD9B4;
+    --sec-wash: #12241E;
+    --par: #8AA2F2;
+    --par-wash: #161E30;
+    --def: #E3A552;
+    --def-wash: #241C10;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 26px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="light"] {
+  --bg: #F6F7F5; --surface: #FFFFFF; --surface-2: #F0F2EF; --ink: #191C1A;
+  --ink-soft: #4C5551; --ink-faint: #7C847F; --rule: #E1E5E0; --rule-strong: #CDD3CD;
+  --accent: #0C7C6C; --accent-ink: #095F53; --accent-wash: #E4F1EC;
+  --sec: #0C7C6C; --sec-wash: #E4F1EC; --par: #3A5CCC; --par-wash: #E7EBFA;
+  --def: #A9691E; --def-wash: #F6ECDD;
+  --shadow: 0 1px 2px rgba(20,30,26,.05), 0 6px 22px rgba(20,30,26,.06);
+}
+:root[data-theme="dark"] {
+  --bg: #0E1412; --surface: #141C19; --surface-2: #101915; --ink: #E8EDE9;
+  --ink-soft: #A6B2AB; --ink-faint: #6F7C75; --rule: #24302B; --rule-strong: #33443C;
+  --accent: #3DD9B4; --accent-ink: #6FE8CB; --accent-wash: #12241E;
+  --sec: #3DD9B4; --sec-wash: #12241E; --par: #8AA2F2; --par-wash: #161E30;
+  --def: #E3A552; --def-wash: #241C10;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 26px rgba(0,0,0,.35);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Charter, "Bitstream Charter", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-size: 19px;
+  line-height: 1.66;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+.mono, code, .kbd { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace; }
+
+/* ---------- Layout shell ---------- */
+.wrap {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 0;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+nav.toc {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 30px 22px 60px 28px;
+  border-right: 1px solid var(--rule);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+nav.toc .brand {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -.01em;
+  margin-bottom: 2px;
+  color: var(--ink);
+}
+nav.toc .brand b { color: var(--accent); }
+nav.toc .brand-sub {
+  color: var(--ink-faint);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  margin-bottom: 20px;
+}
+nav.toc ol { list-style: none; margin: 0; padding: 0; }
+nav.toc .part-t {
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-faint);
+  margin: 18px 0 6px;
+}
+nav.toc a {
+  display: block;
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  margin-left: -2px;
+}
+nav.toc a:hover { color: var(--ink); background: var(--surface-2); }
+nav.toc a.active {
+  color: var(--accent-ink);
+  border-left-color: var(--accent);
+  background: var(--accent-wash);
+  font-weight: 600;
+}
+
+main {
+  padding: 0 clamp(20px, 5vw, 72px) 140px;
+  min-width: 0;
+}
+.col { max-width: var(--measure); margin: 0 auto; }
+
+/* ---------- Theme toggle ---------- */
+.themebtn {
+  position: fixed; top: 16px; right: 16px; z-index: 40;
+  font-family: -apple-system, system-ui, sans-serif; font-size: 12px;
+  background: var(--surface); color: var(--ink-soft);
+  border: 1px solid var(--rule-strong); border-radius: 999px;
+  padding: 7px 13px; cursor: pointer; box-shadow: var(--shadow);
+}
+.themebtn:hover { color: var(--ink); }
+
+/* ---------- Cover ---------- */
+.cover { padding: 12vh 0 8vh; border-bottom: 1px solid var(--rule); margin-bottom: 8px; }
+.cover .eyebrow {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--accent);
+  font-size: 13px; letter-spacing: .16em; text-transform: uppercase;
+  margin-bottom: 22px;
+}
+.cover h1 {
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 800; letter-spacing: -.028em; line-height: 1.02;
+  font-size: clamp(2.6rem, 7vw, 4.4rem);
+  margin: 0 0 24px; text-wrap: balance;
+}
+.cover h1 em { font-style: normal; color: var(--accent); }
+.cover .lede { font-size: 1.28rem; color: var(--ink-soft); max-width: 34ch; line-height: 1.5; }
+.cover .meta {
+  margin-top: 40px; font-family: -apple-system, system-ui, sans-serif; font-size: 13px;
+  color: var(--ink-faint); display: flex; gap: 26px; flex-wrap: wrap;
+}
+.cover .meta b { color: var(--ink); font-weight: 600; }
+
+/* ---------- Part divider ---------- */
+.part {
+  margin: 96px 0 40px; padding-top: 30px;
+  border-top: 2px solid var(--ink);
+  display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: end;
+}
+.part .pnum {
+  font-family: -apple-system, system-ui, sans-serif;
+  font-weight: 800; font-size: clamp(3rem, 9vw, 5.5rem); line-height: .8;
+  color: var(--accent); letter-spacing: -.04em;
+}
+.part .pt-eyebrow {
+  font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px;
+}
+.part h2 {
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 800; letter-spacing: -.02em; font-size: clamp(1.7rem, 3.6vw, 2.4rem);
+  margin: 0; line-height: 1.05; text-wrap: balance;
+}
+.part-intro { color: var(--ink-soft); font-size: 1.08rem; margin: 4px 0 0; }
+
+/* ---------- Headings within ---------- */
+h3.block-h {
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 700; letter-spacing: -.015em; font-size: 1.5rem;
+  margin: 0 0 4px; line-height: 1.15; text-wrap: balance; scroll-margin-top: 24px;
+}
+.blockwrap { margin: 46px 0; }
+.blockwrap.def-block, .blockwrap.para-block { margin: 34px 0; }
+
+/* ---------- Tier badges ---------- */
+.tier {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 999px; margin-bottom: 12px;
+  border: 1px solid transparent;
+}
+.tier::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+.tier.t-sec { color: var(--sec); background: var(--sec-wash); border-color: color-mix(in srgb, var(--sec) 30%, transparent); }
+.tier.t-sec::before { background: var(--sec); }
+.tier.t-par { color: var(--par); background: var(--par-wash); border-color: color-mix(in srgb, var(--par) 30%, transparent); }
+.tier.t-par::before { background: var(--par); }
+.tier.t-def { color: var(--def); background: var(--def-wash); border-color: color-mix(in srgb, var(--def) 34%, transparent); }
+.tier.t-def::before { background: var(--def); }
+
+/* ---------- Definition card ---------- */
+.def-block {
+  border: 1px solid var(--rule-strong); border-left: 3px solid var(--def);
+  background: var(--surface); border-radius: 10px; padding: 16px 20px; box-shadow: var(--shadow);
+}
+.def-block h3.block-h { font-size: 1.12rem; }
+.def-block p { margin: 4px 0 0; font-size: .99rem; color: var(--ink-soft); }
+.def-block p:first-of-type { color: var(--ink); }
+
+/* ---------- Body copy ---------- */
+p { margin: 0 0 1.05em; }
+.blockwrap > p + p { margin-top: 0; }
+strong { font-weight: 700; }
+em.term { font-style: italic; color: var(--ink); font-weight: 600; }
+a.xref { color: var(--accent-ink); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+a.xref:hover { border-bottom-color: var(--accent); }
+code {
+  background: var(--surface-2); border: 1px solid var(--rule);
+  padding: .06em .38em; border-radius: 5px; font-size: .84em;
+}
+.kbd {
+  display: inline-block; background: var(--surface); border: 1px solid var(--rule-strong);
+  border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; font-size: .8em;
+  color: var(--ink); box-shadow: 0 1px 0 rgba(0,0,0,.04);
+}
+
+/* ---------- Callout: how LocalFlow uses this ---------- */
+.usedin {
+  margin: 22px 0; padding: 16px 20px 16px 18px;
+  background: var(--accent-wash); border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  border-left: 3px solid var(--accent); border-radius: 10px;
+}
+.usedin .u-label {
+  font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink);
+  display: flex; align-items: center; gap: 7px; margin-bottom: 8px;
+}
+.usedin p { margin: 0 0 .5em; font-size: .98rem; }
+.usedin p:last-child { margin-bottom: 0; }
+
+.aside {
+  margin: 22px 0; padding: 14px 18px; border: 1px dashed var(--rule-strong);
+  border-radius: 10px; background: var(--surface-2); font-size: .95rem; color: var(--ink-soft);
+}
+.aside b { color: var(--ink); }
+
+/* ---------- Figures / diagrams ---------- */
+figure {
+  margin: 30px 0; padding: 22px; border: 1px solid var(--rule);
+  background: var(--surface); border-radius: 12px; box-shadow: var(--shadow); overflow-x: auto;
+}
+figure svg { display: block; margin: 0 auto; max-width: 100%; height: auto; color: var(--ink); }
+figure figcaption {
+  font-family: -apple-system, system-ui, sans-serif; font-size: 13px; font-style: normal;
+  color: var(--ink-faint); margin-top: 16px; text-align: center; line-height: 1.45;
+}
+figure figcaption b { color: var(--ink-soft); font-weight: 600; }
+.diagram text { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+/* diagram fills */
+.d-fill { fill: var(--surface-2); }
+.d-fill-accent { fill: var(--accent-wash); }
+.d-stroke { stroke: var(--rule-strong); }
+.d-accent-s { stroke: var(--accent); }
+.d-accent-f { fill: var(--accent); }
+.d-ink { fill: var(--ink); }
+.d-soft { fill: var(--ink-soft); }
+.d-faint { fill: var(--ink-faint); }
+.d-line { stroke: var(--ink-soft); }
+
+/* ---------- misc ---------- */
+ul.clean { padding-left: 1.2em; }
+ul.clean li { margin-bottom: .4em; }
+.pipeline-legend { display:flex; gap:18px; flex-wrap:wrap; font-family:-apple-system,system-ui,sans-serif; font-size:12px; color:var(--ink-faint); justify-content:center; margin-top:6px;}
+.pipeline-legend span{display:inline-flex;align-items:center;gap:6px;}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block;}
+hr.soft { border: none; border-top: 1px solid var(--rule); margin: 40px 0; }
+.endnote { color: var(--ink-faint); font-size: .92rem; font-family: -apple-system, system-ui, sans-serif; }
+
+@media (max-width: 900px) {
+  .wrap { grid-template-columns: 1fr; }
+  nav.toc { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--rule); }
+  body { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+</style>
+
+<button class="themebtn sans" id="themebtn" aria-label="Toggle light or dark theme">◐ Theme</button>
+
+<div class="wrap">
+<nav class="toc sans" aria-label="Table of contents">
+  <div class="brand"><b>Local</b>Flow</div>
+  <div class="brand-sub">From Electrons Up</div>
+  <ol id="toclist">
+    <li><a href="#preface">Preface &amp; how to read this</a></li>
+
+    <li class="part-t">I · Electrons to Logic</li>
+    <li><a href="#s-current">Electricity &amp; current</a></li>
+    <li><a href="#s-voltage">Voltage</a></li>
+    <li><a href="#s-transistor">The transistor</a></li>
+    <li><a href="#s-bits">Bits &amp; binary</a></li>
+    <li><a href="#s-gates">Logic gates</a></li>
+
+    <li class="part-t">II · Logic to a Computer</li>
+    <li><a href="#s-cpu">The CPU</a></li>
+    <li><a href="#s-memory">Memory &amp; storage</a></li>
+    <li><a href="#s-os">The operating system</a></li>
+    <li><a href="#s-processes">Processes, threads, async</a></li>
+    <li><a href="#s-languages">Languages &amp; compilers</a></li>
+
+    <li class="part-t">III · The World as Numbers</li>
+    <li><a href="#s-sound">What sound is</a></li>
+    <li><a href="#s-mic">The microphone</a></li>
+    <li><a href="#s-adc">Sampling &amp; the ADC</a></li>
+    <li><a href="#s-pcm">PCM &amp; audio samples</a></li>
+
+    <li class="part-t">IV · Frequencies</li>
+    <li><a href="#s-fourier">The Fourier idea</a></li>
+    <li><a href="#s-spectrogram">Spectrograms &amp; mel</a></li>
+
+    <li class="part-t">V · Text to Speech</li>
+    <li><a href="#s-tts">Making sound from text</a></li>
+    <li><a href="#s-tts-how">How we used TTS</a></li>
+
+    <li class="part-t">VI · Machine Learning</li>
+    <li><a href="#s-ml">Learning from data</a></li>
+    <li><a href="#s-nn">Neural networks</a></li>
+    <li><a href="#s-transformer">Transformers &amp; attention</a></li>
+
+    <li class="part-t">VII · Speech Recognition</li>
+    <li><a href="#s-asr">The ASR problem</a></li>
+    <li><a href="#s-conformer">Parakeet's encoder</a></li>
+    <li><a href="#s-decode">Tokens &amp; decoding</a></li>
+    <li><a href="#s-dirty">Why the text is dirty</a></li>
+    <li><a href="#s-vad">Voice activity detection</a></li>
+    <li><a href="#s-ane">CoreML &amp; the ANE</a></li>
+
+    <li class="part-t">VIII · The LLM Cleanup</li>
+    <li><a href="#s-lm">Language models</a></li>
+    <li><a href="#s-ollama">Ollama</a></li>
+    <li><a href="#s-net">Networking &amp; IP</a></li>
+    <li><a href="#s-constrain">Constraining the model</a></li>
+
+    <li class="part-t">IX · OS Integration</li>
+    <li><a href="#s-keypress">Anatomy of a keypress</a></li>
+    <li><a href="#s-hotkey">The global hotkey</a></li>
+    <li><a href="#s-tcc">Permissions &amp; code signing</a></li>
+    <li><a href="#s-inject">Getting text on screen</a></li>
+
+    <li class="part-t">X · How It's Linked</li>
+    <li><a href="#s-pipeline">The whole pipeline</a></li>
+    <li><a href="#s-modules">Module architecture</a></li>
+    <li><a href="#s-state">The state machine</a></li>
+
+    <li class="part-t">XI · Lessons</li>
+    <li><a href="#s-lessons">Engineering lessons</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="col">
+
+<header class="cover" id="preface">
+  <div class="eyebrow">A ground-up field guide</div>
+  <h1>LocalFlow,<br>from <em>electrons</em> up.</h1>
+  <p class="lede">How a held key becomes clean text on your screen — traced from charge moving in silicon all the way to a working macOS dictation app.</p>
+  <div class="meta sans">
+    <span><b>Reads like</b> a short textbook</span>
+    <span><b>Assumes</b> nothing</span>
+    <span><b>Ends at</b> a real app you built</span>
+  </div>
+</header>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h">What this document is, and how to read it</h3>
+<p>LocalFlow is a small program that does something that feels simple: you hold a key, you talk, and cleaned-up text appears wherever your cursor is. Underneath that one gesture sits almost the entire stack of modern computing — electricity, logic, digital audio, signal processing, machine learning, operating-system security, and networking. This guide unpacks all of it, in order, starting from the most basic physical fact and never using an idea before it has been explained.</p>
+<p>The promise of the guide is that you can begin knowing nothing about how computers or speech recognition work and finish understanding, genuinely, every stage of what happens when you dictate a sentence. We are not here to read the program's source code — syntax and styling are deliberately out of scope. We are here for the <em class="term">concepts</em>: the frameworks, the pipelines, the reasons each piece exists.</p>
+
+<p>To keep a very long journey navigable, every idea is tagged with one of three sizes, so you always know how much weight it carries:</p>
+
+<div class="def-block blockwrap">
+  <span class="tier t-def">Definition</span>
+  <h3 class="block-h">The three tiers used in this guide</h3>
+  <p><strong>Section</strong> — a long treatment of a genuinely complex idea, with analogies and diagrams. <strong>Paragraph</strong> — a compact idea: a definition or two, an example, and how LocalFlow used it. <strong>Definition</strong> — a single-sentence explanation of something simple that still deserves naming.</p>
+</div>
+
+<p>Whenever a concept is one LocalFlow actually leans on, you will see a tinted box like the one below tying the theory back to the app. Those boxes are the spine of the story; the surrounding material exists so they make sense.</p>
+
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>You will meet this box often. Each time, it answers one question: <em>where does this idea actually show up in the app you built?</em> By the end, these boxes will have assembled themselves into the complete machine.</p>
+</div>
+
+<p>One map before we start. The whole app is a <em class="term">pipeline</em> — a line of stations, each taking the previous one's output as its input:</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 720 150" role="img" aria-label="High-level pipeline from key press through microphone, speech recognition, language model, to pasted text">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" class="d-accent-f"/>
+    </marker>
+  </defs>
+  <g font-size="11">
+    <rect x="8"  y="46" width="96" height="58" rx="9" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="56"  y="70" text-anchor="middle" class="d-ink">hold key</text>
+    <text x="56"  y="86" text-anchor="middle" class="d-faint">⌥ Right Opt</text>
+
+    <rect x="140" y="46" width="96" height="58" rx="9" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="188" y="70" text-anchor="middle" class="d-ink">microphone</text>
+    <text x="188" y="86" text-anchor="middle" class="d-faint">→ numbers</text>
+
+    <rect x="272" y="46" width="96" height="58" rx="9" class="d-fill-accent d-accent-s" stroke-width="1.4"/>
+    <text x="320" y="70" text-anchor="middle" class="d-ink">ASR</text>
+    <text x="320" y="86" text-anchor="middle" class="d-faint">Parakeet</text>
+
+    <rect x="404" y="46" width="96" height="58" rx="9" class="d-fill-accent d-accent-s" stroke-width="1.4"/>
+    <text x="452" y="70" text-anchor="middle" class="d-ink">LLM</text>
+    <text x="452" y="86" text-anchor="middle" class="d-faint">cleanup</text>
+
+    <rect x="536" y="46" width="96" height="58" rx="9" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="584" y="70" text-anchor="middle" class="d-ink">paste</text>
+    <text x="584" y="86" text-anchor="middle" class="d-faint">into app</text>
+
+    <line x1="104" y1="75" x2="138" y2="75" class="d-line" stroke-width="1.4" marker-end="url(#arrow)"/>
+    <line x1="236" y1="75" x2="270" y2="75" class="d-line" stroke-width="1.4" marker-end="url(#arrow)"/>
+    <line x1="368" y1="75" x2="402" y2="75" class="d-line" stroke-width="1.4" marker-end="url(#arrow)"/>
+    <line x1="500" y1="75" x2="534" y2="75" class="d-line" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+    <text x="320" y="30" text-anchor="middle" class="d-soft">speech → text</text>
+    <text x="452" y="30" text-anchor="middle" class="d-soft">dirty text → clean text</text>
+    <text x="320" y="128" text-anchor="middle" class="d-faint">everything below runs on your Mac — nothing leaves the machine</text>
+  </g>
+</svg>
+<figcaption><b>The entire app in one line.</b> Parts III–X of this guide zoom into each box; Parts I–II build the computer they all run on.</figcaption>
+</figure>
+
+<p>We begin as far down as it is useful to go: with electric charge moving through a wire.</p>
+</div>
+
+<div class="part">
+  <div class="pnum">I</div>
+  <div>
+    <div class="pt-eyebrow">Part One</div>
+    <h2>Electrons to Logic</h2>
+    <p class="part-intro">Before a computer can recognise speech, it has to be able to think at all. That ability is built, astonishingly, out of nothing but a switch — repeated a few billion times.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-current">Electricity and current</h3>
+<p>Everything a computer does begins with <em class="term">electric charge</em> in motion. Matter is made of atoms, and atoms contain <em class="term">electrons</em> — tiny particles carrying a negative charge. In certain materials, called <em class="term">conductors</em> (copper, gold, and — crucially — specially treated silicon), some electrons are only loosely attached to their atoms and can drift from one atom to the next.</p>
+<p>When we give those loose electrons a reason to move all in the same direction, we get an <em class="term">electric current</em>. A helpful and time-honoured analogy is water in a pipe: the electrons are the water, the wire is the pipe, and current is how much water flows past a point each second. The unit of current, the <em>ampere</em>, is literally a count of charge per second.</p>
+<p>Why does this matter for a dictation app? Because a moving-or-not-moving current is the physical thing a computer uses to represent a fact that is <em>true-or-false</em>, <em>on-or-off</em>, <em>one-or-zero</em>. Every photograph, song, sentence, and neural network inside your Mac is, at the bottom, an arrangement of tiny currents that are either flowing or not. The rest of this Part is the story of how we get from "current flows / current doesn't" to "the computer just made a decision."</p>
+</div>
+
+<div class="def-block blockwrap">
+<span class="tier t-def">Definition</span>
+<h3 class="block-h" id="s-voltage">Voltage</h3>
+<p><strong>Voltage</strong> is the electrical "pressure" that pushes electrons through a wire — in the water analogy, the difference in height that makes water want to flow downhill. No pressure difference, no flow. Computers represent information by switching this pressure between two set levels, e.g. a "high" voltage meaning <code>1</code> and roughly zero volts meaning <code>0</code>.</p>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-transistor">The transistor: a switch with no moving parts</h3>
+<p>A light switch on a wall controls a current: flip it and the current to the bulb either flows or stops. But a wall switch needs a finger. To build a thinking machine we need a switch that can be flipped by <em>another electrical signal</em> — so that switches can control switches, with no human in the loop. That device is the <em class="term">transistor</em>, and it is the single most important invention in this entire guide.</p>
+<p>A transistor has three connections. Two of them, call them the <em>in</em> and the <em>out</em>, are the wire whose current we want to control. The third, the <em>gate</em>, is the control input. Here is the magic: when a small voltage is applied to the gate, the path between <em>in</em> and <em>out</em> becomes conductive and current flows; when the gate voltage is removed, the path closes and current stops. A voltage controls whether a current flows. One electrical signal operates a switch for another.</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 640 200" role="img" aria-label="A transistor shown as an electrically controlled switch: when the gate is on, current flows from in to out">
+  <g font-size="12">
+    <!-- OFF state -->
+    <text x="150" y="26" text-anchor="middle" class="d-soft">gate = 0 (no pressure)</text>
+    <line x1="40" y1="80" x2="120" y2="80" class="d-line" stroke-width="2"/>
+    <text x="40" y="72" class="d-faint">in</text>
+    <circle cx="128" cy="80" r="5" class="d-fill d-stroke" stroke-width="1.5"/>
+    <line x1="172" y1="80" x2="180" y2="80" class="d-line" stroke-width="2"/>
+    <line x1="150" y1="80" x2="172" y2="64" class="d-stroke" stroke-width="2" stroke-linecap="round"/>
+    <line x1="180" y1="80" x2="260" y2="80" class="d-line" stroke-width="2" stroke-dasharray="4 4"/>
+    <text x="268" y="72" class="d-faint">out</text>
+    <line x1="150" y1="120" x2="150" y2="98" class="d-stroke" stroke-width="2"/>
+    <text x="150" y="140" text-anchor="middle" class="d-faint">gate</text>
+    <text x="150" y="172" text-anchor="middle" class="d-soft" font-size="13">open · no current</text>
+
+    <!-- ON state -->
+    <text x="490" y="26" text-anchor="middle" class="d-soft">gate = 1 (pressure applied)</text>
+    <line x1="380" y1="80" x2="460" y2="80" class="d-accent-s" stroke-width="2.4"/>
+    <text x="380" y="72" class="d-faint">in</text>
+    <circle cx="468" cy="80" r="5" class="d-fill-accent d-accent-s" stroke-width="1.5"/>
+    <line x1="468" y1="80" x2="520" y2="80" class="d-accent-s" stroke-width="2.4"/>
+    <line x1="520" y1="80" x2="600" y2="80" class="d-accent-s" stroke-width="2.4"/>
+    <text x="608" y="72" class="d-faint">out</text>
+    <line x1="490" y1="120" x2="490" y2="92" class="d-accent-s" stroke-width="2.4"/>
+    <text x="490" y="140" text-anchor="middle" class="d-faint">gate</text>
+    <text x="490" y="172" text-anchor="middle" class="d-accent-f" font-size="13">closed · current flows</text>
+  </g>
+</svg>
+<figcaption><b>The whole of computing rests on this.</b> A transistor is a switch whose lever is pulled by electricity instead of a finger — so switches can operate switches, endlessly.</figcaption>
+</figure>
+
+<p>Transistors are etched into silicon in mind-bending numbers. The Apple chip in your MacBook Air holds on the order of <em>tens of billions</em> of them, each a few atoms wide. They have no moving parts, so they can flip billions of times per second and last for years. Every capability we build in this guide — arithmetic, memory, audio, neural networks — is ultimately a specific pattern of these switches turning each other on and off.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h" id="s-bits">Bits and binary</h3>
+<p>Because the transistor's honest answer is only ever "current flows" or "it doesn't," the natural unit of information in a computer has exactly two possible values. We call it a <em class="term">bit</em> (short for <em>binary digit</em>), and we write its two states as <code>1</code> and <code>0</code>. A single bit is a very small fact — a coin that is heads or tails.</p>
+<p>To represent bigger things, we line bits up. Two bits give four combinations (00, 01, 10, 11); eight bits — one <em class="term">byte</em> — give 256; and so on, doubling with each bit. This is the <em class="term">binary</em> number system: the same idea as ordinary decimal counting, but with only two symbols instead of ten. With enough bits you can encode any whole number, and from numbers you can encode letters (the character "A" is agreed to be the number 65), colours, audio samples, and the weights of a neural network. Everything is numbers; numbers are bits; bits are transistors.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>When you speak, LocalFlow stores your voice as a long list of numbers called <code>Float32</code> samples — each one a 32-bit pattern. The speech model's "knowledge" is likewise millions of numbers. Nothing in the app is more fundamental than a bit; the app is just an extremely elaborate opinion about which bits should be 1.</p>
+</div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-gates">Logic gates: how switches start to reason</h3>
+<p>A lone switch cannot reason. But wire a few transistors together and you get a <em class="term">logic gate</em> — a tiny circuit that takes one or more input bits and produces an output bit according to a fixed rule. The remarkable discovery of the twentieth century is that a handful of these rules is enough to compute <em>anything computable</em>.</p>
+<p>The rules mirror the words we use for logic:</p>
+<ul class="clean">
+  <li>An <strong>AND</strong> gate outputs <code>1</code> only if <em>both</em> inputs are <code>1</code> — like two switches in a row; the current only gets through if both are closed.</li>
+  <li>An <strong>OR</strong> gate outputs <code>1</code> if <em>either</em> input is <code>1</code> — two switches side by side; either path lets current through.</li>
+  <li>A <strong>NOT</strong> gate outputs the <em>opposite</em> of its single input — it turns <code>1</code> into <code>0</code> and vice-versa.</li>
+</ul>
+<p>From those, everything is assembled. Combine them cleverly and you can build a circuit that adds two binary numbers, exactly as a child adds decimal digits with a "carry." Add more and you can compare numbers, choose between two values, or remember a bit after the input goes away. Stack those into larger blocks and you have the components of a processor.</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 620 210" role="img" aria-label="Three basic logic gates AND, OR, NOT with their truth tables">
+  <g font-size="11">
+    <!-- AND -->
+    <path d="M60,40 L60,90 L85,90 A25,25 0 0 0 85,40 Z" class="d-fill d-stroke" stroke-width="1.5"/>
+    <line x1="40" y1="52" x2="60" y2="52" class="d-line" stroke-width="1.5"/>
+    <line x1="40" y1="78" x2="60" y2="78" class="d-line" stroke-width="1.5"/>
+    <line x1="110" y1="65" x2="130" y2="65" class="d-line" stroke-width="1.5"/>
+    <text x="82" y="112" text-anchor="middle" class="d-ink" font-size="12">AND</text>
+    <text x="82" y="146" text-anchor="middle" class="d-faint">1 · 1 → 1</text>
+    <text x="82" y="162" text-anchor="middle" class="d-faint">1 · 0 → 0</text>
+    <text x="82" y="178" text-anchor="middle" class="d-faint">0 · 0 → 0</text>
+
+    <!-- OR -->
+    <path d="M250,40 Q275,40 300,65 Q275,90 250,90 Q262,65 250,40 Z" class="d-fill d-stroke" stroke-width="1.5"/>
+    <line x1="232" y1="52" x2="256" y2="52" class="d-line" stroke-width="1.5"/>
+    <line x1="232" y1="78" x2="256" y2="78" class="d-line" stroke-width="1.5"/>
+    <line x1="300" y1="65" x2="320" y2="65" class="d-line" stroke-width="1.5"/>
+    <text x="278" y="112" text-anchor="middle" class="d-ink" font-size="12">OR</text>
+    <text x="278" y="146" text-anchor="middle" class="d-faint">1 + 1 → 1</text>
+    <text x="278" y="162" text-anchor="middle" class="d-faint">1 + 0 → 1</text>
+    <text x="278" y="178" text-anchor="middle" class="d-faint">0 + 0 → 0</text>
+
+    <!-- NOT -->
+    <path d="M450,45 L450,85 L485,65 Z" class="d-fill d-stroke" stroke-width="1.5"/>
+    <circle cx="491" cy="65" r="5" class="d-fill d-stroke" stroke-width="1.5"/>
+    <line x1="428" y1="65" x2="450" y2="65" class="d-line" stroke-width="1.5"/>
+    <line x1="496" y1="65" x2="516" y2="65" class="d-line" stroke-width="1.5"/>
+    <text x="472" y="112" text-anchor="middle" class="d-ink" font-size="12">NOT</text>
+    <text x="472" y="146" text-anchor="middle" class="d-faint">1 → 0</text>
+    <text x="472" y="162" text-anchor="middle" class="d-faint">0 → 1</text>
+  </g>
+</svg>
+<figcaption><b>The full vocabulary of digital logic.</b> AND, OR, and NOT — each a few transistors — combine into adders, comparators, and memory. A processor is millions of these arranged with purpose.</figcaption>
+</figure>
+
+<p>Hold onto the through-line of Part I: charge moves (current), a control voltage steers it (transistor), one steered current is a fact (bit), and patterns of steered facts are decisions (gates). We now have a machine that can decide. In Part II we organise billions of these decisions into something that can run a program.</p>
+</div>
+
+<div class="part">
+  <div class="pnum">II</div>
+  <div>
+    <div class="pt-eyebrow">Part Two</div>
+    <h2>Logic to a Computer</h2>
+    <p class="part-intro">Billions of gates, left as a heap, do nothing. Organised into a processor that fetches instructions, a memory that holds them, and an operating system that referees, they become a machine you can program.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-cpu">The CPU and the fetch–execute loop</h3>
+<p>The <em class="term">CPU</em> (central processing unit, the "processor") is the part built from logic gates that actually <em>does</em> things. Its behaviour, no matter how sophisticated the software on top, is a stupidly simple loop repeated billions of times a second:</p>
+<ul class="clean">
+  <li><strong>Fetch</strong> the next instruction from memory.</li>
+  <li><strong>Decode</strong> it — figure out which operation it names.</li>
+  <li><strong>Execute</strong> it — add two numbers, compare them, move a value, jump elsewhere.</li>
+  <li>Repeat.</li>
+</ul>
+<p>An <em class="term">instruction</em> is itself just a number — a pattern of bits the CPU's gates are wired to interpret as "add" or "load" or "jump." The CPU understands only a small, fixed menu of these primitive operations, called its <em class="term">instruction set</em>. Apple Silicon chips use an instruction set called <em>ARM</em> (specifically <em>arm64</em>); this fact will return later, because software must be translated into the exact instruction set of the chip it runs on.</p>
+<p>How can such a plodding loop transcribe speech? Two ways. First, speed: the CPU repeats that loop several billion times per second, so even enormous tasks finish quickly. Second, specialisation: modern chips include extra engines beside the general-purpose CPU — a <em>GPU</em> for massively parallel maths, and, on Apple Silicon, a <em>Neural Engine</em> purpose-built for the arithmetic that neural networks need. LocalFlow's speech model runs on that Neural Engine, a point we return to in Part VII.</p>
+</div>
+
+<div class="def-block blockwrap">
+<span class="tier t-def">Definition</span>
+<h3 class="block-h">Clock speed</h3>
+<p>A CPU's <strong>clock</strong> is a signal that ticks billions of times per second, and each tick nudges the fetch–execute loop forward one step. "3&nbsp;GHz" means three billion ticks a second. The clock is the metronome that keeps all those billions of gates changing state in lockstep instead of chaos.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h" id="s-memory">Memory and storage</h3>
+<p>A CPU needs somewhere to keep the instructions and numbers it is working on. <em class="term">Memory</em> — <em>RAM</em>, random-access memory — is fast, plentiful, and <em>volatile</em>: it holds data as long as the power is on and forgets everything when the machine turns off. <em class="term">Storage</em> — the SSD — is slower but <em>persistent</em>: it keeps your files when powered down. The rule of thumb is that RAM is the desk you actively work on and the SSD is the filing cabinet you fetch from and return to.</p>
+<p>Your MacBook Air has <strong>16&nbsp;GB</strong> of RAM — about 16 billion bytes of desk space — and this number is not trivia; it is a hard design constraint that shaped LocalFlow. Apple Silicon uses <em class="term">unified memory</em>, meaning the CPU, GPU, and Neural Engine all share that same 16&nbsp;GB pool rather than each having its own.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>LocalFlow runs <em>two</em> AI models at once — a speech recogniser and a language model — and both must fit in 16&nbsp;GB at the same time without the Mac resorting to the slow SSD as overflow (which would make dictation lag). That single constraint is why the app deliberately pairs a small speech model with a small 3-billion-parameter language model instead of a larger one. Nearly every model-size decision in the app traces back to this number.</p>
+</div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-os">The operating system</h3>
+<p>If every program had to speak directly to the transistors, the microphone, and the screen, writing software would be impossible and any one program could trample the others. The <em class="term">operating system</em> — macOS, here — is the layer of software that sits between the hardware and the programs and referees the whole arrangement. It has three jobs worth naming.</p>
+<p>First, it <strong>shares the hardware</strong>: it hands each program a slice of CPU time and RAM, and it prevents one program from reading or corrupting another's memory. Second, it <strong>abstracts the hardware</strong>: instead of every app knowing the electrical details of your specific microphone, macOS offers a tidy request like "give me the audio," and it handles the messy specifics. Third, it <strong>enforces the rules</strong>: it decides what a program is and isn't allowed to do — and, as we will see in Part IX, whether an app may listen to your keyboard or read your microphone is a permission the operating system grants or withholds.</p>
+<p>A useful mental picture: the OS is the building manager for an apartment block. Tenants (programs) don't run their own plumbing or wiring; they make requests to the manager, who allocates shared resources fairly, keeps tenants out of each other's units, and enforces the lease. LocalFlow is one tenant, and much of its interesting behaviour is really a negotiation with this manager.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h" id="s-processes">Processes, threads, and staying responsive</h3>
+<p>A running program is a <em class="term">process</em> — the operating system's unit of "a program in action," with its own private slice of memory. Within a process, work can be split across <em class="term">threads</em>, which are independent streams of instructions that can run at the same time (real chips have several CPU cores, so threads genuinely run in parallel). A <em class="term">concurrency</em> model is simply the set of rules a language gives you for doing more than one thing at once without the threads corrupting each other's data.</p>
+<p>This matters intensely for a dictation app, because the slow steps — running a neural network, waiting on the language model — must <em>not</em> freeze the little menu-bar icon or block your keypress from registering. Modern languages express this with <em>async/await</em>: a way to say "start this slow thing and let other work continue; wake me when it's done." Apple's Swift also offers <em>actors</em>, objects that guarantee only one thread touches their internals at a time, which removes a whole category of hard bugs.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>The speech recogniser is wrapped in an actor so that audio and model state can never be corrupted by two threads at once. The cleanup step is launched with async/await and given a strict timeout — if the language model is slow, a second timer "wins" and the app pastes the raw transcript instead of hanging. The visible payoff is that the recording indicator keeps pulsing smoothly while heavy work happens out of sight.</p>
+</div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-languages">From machine code to Swift: languages and compilers</h3>
+<p>The CPU only understands its instruction set — raw numbers. Writing software directly in those numbers, called <em class="term">machine code</em>, is inhuman. So we write in a <em class="term">programming language</em>: a structured, readable notation for expressing what we want, using words and symbols a person can reason about. LocalFlow is written mostly in <em>Swift</em>, Apple's modern language.</p>
+<p>But the chip cannot read Swift. A <em class="term">compiler</em> is a program that translates human-written source code into the exact machine instructions of a target chip — for us, arm64. Think of the compiler as a translator who takes a manuscript written in a language people can read and produces the terse, literal version the machine can execute, checking along the way that the manuscript makes sense (catching whole classes of mistakes before the program ever runs).</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 640 130" role="img" aria-label="Source code compiled to machine code that runs on the chip">
+  <defs>
+    <marker id="arrow2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" class="d-accent-f"/></marker>
+  </defs>
+  <g font-size="11">
+    <rect x="20" y="40" width="150" height="50" rx="8" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="95" y="62" text-anchor="middle" class="d-ink" font-size="12">Swift source</text>
+    <text x="95" y="78" text-anchor="middle" class="d-faint">human-readable</text>
+
+    <rect x="245" y="40" width="150" height="50" rx="8" class="d-fill-accent d-accent-s" stroke-width="1.4"/>
+    <text x="320" y="62" text-anchor="middle" class="d-ink" font-size="12">compiler</text>
+    <text x="320" y="78" text-anchor="middle" class="d-faint">translates + checks</text>
+
+    <rect x="470" y="40" width="150" height="50" rx="8" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="545" y="62" text-anchor="middle" class="d-ink" font-size="12">arm64 machine code</text>
+    <text x="545" y="78" text-anchor="middle" class="d-faint">runs on the chip</text>
+
+    <line x1="170" y1="65" x2="243" y2="65" class="d-line" stroke-width="1.4" marker-end="url(#arrow2)"/>
+    <line x1="395" y1="65" x2="468" y2="65" class="d-line" stroke-width="1.4" marker-end="url(#arrow2)"/>
+  </g>
+</svg>
+<figcaption><b>Nobody writes the numbers by hand.</b> We write Swift; the compiler turns it into the transistor-level instructions from Part I. LocalFlow is built this way with a single command, <code>swift build</code>.</figcaption>
+</figure>
+
+<p>Two more terms close out the toolchain. A <em class="term">library</em> (or <em>package</em>) is pre-written, reusable code that solves a common problem so you don't have to — LocalFlow pulls in a library called <em>FluidAudio</em> that already knows how to run speech models on Apple hardware. And a <em class="term">package manager</em> is the tool that downloads those libraries and wires them into your build; Swift's is called SwiftPM. With the computer now built and programmable, we can start turning the physical world — your voice — into numbers it can process.</p>
+</div>
+
+<div class="part">
+  <div class="pnum">III</div>
+  <div>
+    <div class="pt-eyebrow">Part Three</div>
+    <h2>The World as Numbers</h2>
+    <p class="part-intro">A computer cannot hear. Before speech recognition can begin, the physical vibration of your voice has to be measured, digitised, and reduced to a plain list of numbers. This translation is where dictation truly starts.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-sound">What sound physically is</h3>
+<p>When you speak, your vocal cords and mouth push air around, creating travelling patterns of slightly-higher and slightly-lower air pressure — <em class="term">sound waves</em>. They ripple outward like the rings from a stone dropped in a pond. Your eardrum feels these pressure changes and your brain interprets them as speech. A microphone will do the machine's version of the same thing.</p>
+<p>Two properties of a wave carry almost all the meaning. Its <em class="term">frequency</em> — how many pressure cycles arrive each second, measured in <em>hertz</em> (Hz) — is what we perceive as pitch; a low rumble is a low frequency, a whistle a high one. Its <em class="term">amplitude</em> — how big the pressure swings are — is what we perceive as loudness. Human speech lives mostly between roughly 100&nbsp;Hz and 8,000&nbsp;Hz, a fact that will directly determine how finely LocalFlow needs to measure your voice.</p>
+<p>Crucially, real speech is not one clean wave but many frequencies layered together and changing moment to moment. The word "hello" is a shifting braid of pressure cycles. Capturing it faithfully means recording how the total pressure moves up and down over time — which is exactly what the next two stations do.</p>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-mic">The microphone: pressure becomes voltage</h3>
+<p>A microphone is a <em class="term">transducer</em> — a device that converts one kind of energy into another. Its job is to turn the mechanical push-and-pull of air pressure into a matching electrical <em>voltage</em>, the quantity Part I showed a computer can work with. Inside, a thin membrane sits in the path of the sound; as air pressure rises and falls, the membrane moves in and out, and that motion is converted into a voltage that rises and falls in exact step with it.</p>
+<p>The result is an <em class="term">analog signal</em>: a continuously varying voltage that is a faithful electrical "photograph" of the pressure wave. If you plotted it, you would see the familiar wiggly waveform of audio — smooth, unbroken, and defined at every instant. The word <em>analog</em> is the key: the voltage is <em>analogous</em> to the sound, mirroring it at every point in time with infinite smoothness.</p>
+<p>But a computer, from Part I, deals only in discrete bits and numbers — it has no way to store a value that is "defined at every instant" and varies smoothly forever. Between the microphone's smooth analog voltage and the computer's world of distinct numbers sits the most conceptually important device in this Part.</p>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-adc">Sampling and the analog-to-digital converter</h3>
+<p>An <em class="term">analog-to-digital converter</em> (ADC) turns the smooth analog voltage into a stream of numbers by doing something almost crude: it measures the voltage, throws away everything in between, measures again, and repeats — many thousands of times per second. Each measurement is a <em class="term">sample</em>. The rate at which it measures is the <em class="term">sample rate</em>. Picture filming a moving object: the film is not continuous motion but a rapid sequence of still frames, and if you take enough frames per second the eye reconstructs smooth motion. The ADC films your voice.</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 640 240" role="img" aria-label="A smooth sound wave being sampled at regular intervals into discrete numeric values">
+  <g>
+    <!-- axes -->
+    <line x1="40" y1="120" x2="600" y2="120" class="d-stroke" stroke-width="1" stroke-dasharray="3 4"/>
+    <text x="596" y="112" text-anchor="end" class="d-faint" font-size="10">time →</text>
+    <!-- smooth wave -->
+    <path d="M40,120 C90,40 130,40 180,120 C230,200 270,200 320,120 C370,40 410,40 460,120 C510,200 550,200 600,120"
+          fill="none" class="d-line" stroke-width="2"/>
+    <!-- samples -->
+    <g class="d-accent-f">
+      <circle cx="40"  cy="120" r="4"/><circle cx="75"  cy="66"  r="4"/>
+      <circle cx="110" cy="52"  r="4"/><circle cx="145" cy="78"  r="4"/>
+      <circle cx="180" cy="120" r="4"/><circle cx="215" cy="162" r="4"/>
+      <circle cx="250" cy="188" r="4"/><circle cx="285" cy="162" r="4"/>
+      <circle cx="320" cy="120" r="4"/><circle cx="355" cy="66"  r="4"/>
+      <circle cx="390" cy="52"  r="4"/><circle cx="425" cy="78"  r="4"/>
+      <circle cx="460" cy="120" r="4"/><circle cx="495" cy="162" r="4"/>
+      <circle cx="530" cy="188" r="4"/><circle cx="565" cy="162" r="4"/>
+      <circle cx="600" cy="120" r="4"/>
+    </g>
+    <!-- measurement stems -->
+    <g class="d-accent-s" stroke-width="1" opacity="0.5">
+      <line x1="75" y1="120" x2="75" y2="66"/><line x1="110" y1="120" x2="110" y2="52"/>
+      <line x1="145" y1="120" x2="145" y2="78"/><line x1="215" y1="120" x2="215" y2="162"/>
+      <line x1="250" y1="120" x2="250" y2="188"/><line x1="285" y1="120" x2="285" y2="162"/>
+      <line x1="355" y1="120" x2="355" y2="66"/><line x1="390" y1="120" x2="390" y2="52"/>
+      <line x1="425" y1="120" x2="425" y2="78"/><line x1="495" y1="120" x2="495" y2="162"/>
+      <line x1="530" y1="120" x2="530" y2="188"/><line x1="565" y1="120" x2="565" y2="162"/>
+    </g>
+    <text x="40" y="228" class="d-soft" font-size="11">smooth analog voltage (the line) → discrete samples (the dots) → a list of numbers</text>
+  </g>
+</svg>
+<figcaption><b>Digitising a voice.</b> The ADC reads the wave's height at fixed intervals. Sample often enough and the numbers capture the wave completely; sample too rarely and detail is lost forever.</figcaption>
+</figure>
+
+<p>How often is often enough? A foundational result called the <em class="term">Nyquist theorem</em> gives a precise answer: to capture a frequency faithfully, you must sample at least <em>twice</em> as fast as that frequency. Speech carries its useful information up to about 8,000&nbsp;Hz, so sampling at <strong>16,000 times per second</strong> — "16&nbsp;kHz" — captures everything that matters for understanding words, and no more. Going faster would only record higher frequencies (which speech doesn't use) while making every downstream step slower and heavier.</p>
+
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>LocalFlow records your microphone and immediately converts the audio to exactly <strong>16&nbsp;kHz, single-channel (mono)</strong> — because that is precisely the format its speech model, Parakeet, was trained to expect. Picking 16&nbsp;kHz is not a compromise; it is the Nyquist-correct rate for speech. The app's recorder does this conversion continuously as you speak, so by the time you release the key it already holds a clean list of 16,000 numbers per second of your voice.</p>
+</div>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h">Bit depth and quantization</h3>
+<p>Sample <em>rate</em> is how often you measure; <em class="term">bit depth</em> is how precisely you record each measurement. Since each sample must become a number with a fixed number of bits, the ADC has to round the true voltage to the nearest available value — a rounding called <em class="term">quantization</em>. More bits mean finer steps and a more faithful recording; too few bits and the rounding itself becomes audible as a gritty hiss. It is the audio equivalent of how many decimal places you keep.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>LocalFlow stores each sample as a <code>Float32</code> — a 32-bit number that represents the wave's height as a fraction between −1.0 and +1.0. This is generous precision, so quantization noise is negligible and the speech model sees an essentially exact copy of your voice's shape.</p>
+</div>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h" id="s-pcm">PCM, mono, and a list of samples</h3>
+<p>Put sampling and quantization together and you have <em class="term">PCM</em> — pulse-code modulation, the plainest way to store digital audio: nothing more than the raw list of sample numbers in time order. A <em class="term">channel</em> is one such list; stereo has two (left and right), while <em class="term">mono</em> has one. There is no compression and no cleverness — PCM is just "the wave's height, measured 16,000 times a second, written down."</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>The recorder's output is mono Float32 PCM at 16&nbsp;kHz — one flat array of numbers. Your microphone may natively capture stereo at 48&nbsp;kHz, so the app <em>resamples</em> (recalculates the numbers as if they'd been measured at 16&nbsp;kHz) and <em>downmixes</em> to mono. This unglamorous list of numbers is the raw material every remaining Part operates on. Your voice is now data.</p>
+</div>
+</div>
+
+<div class="part">
+  <div class="pnum">IV</div>
+  <div>
+    <div class="pt-eyebrow">Part Four</div>
+    <h2>Frequencies: the Language of Signals</h2>
+    <p class="part-intro">A raw list of sample heights is hard to recognise words in. Re-describe the same sound in terms of <em>which pitches are present, how strongly, over time</em>, and speech suddenly becomes legible to a machine. That re-description is the bridge into recognition.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-fourier">The Fourier idea: every sound is a sum of pure tones</h3>
+<p>Here is one of the most beautiful and useful ideas in all of science. Any sound, no matter how complex — a spoken sentence, an orchestra, a slammed door — can be reconstructed by adding together a collection of simple, pure tones (single steady frequencies), each at the right loudness. The messy braided waveform of "hello" is <em>equal</em> to some specific recipe of pure pitches mixed in specific proportions. This is the <em class="term">Fourier idea</em>, after the mathematician who proved it.</p>
+<p>An analogy makes it concrete. Strike a chord on a piano and your ear hears one rich sound, yet you know it is really three separate notes played together. Fourier's insight is that <em>every</em> sound works this way: it is secretly a chord, possibly of thousands of notes, and there is a mechanical procedure to recover exactly which notes and how loud each one is. Going from "the wave over time" to "the pitches inside it" is called a <em class="term">Fourier transform</em>.</p>
+<p>Why bother? Because the identity of a speech sound lives in its frequencies. The difference between "ee" and "oo," or between an "s" and an "f," is a difference in which pitches are present and how strongly. A list of raw sample heights hides this; a list of frequency strengths reveals it. To recognise speech, we want to look at sound the way the ear's inner structures already do — by frequency.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h">The FFT</h3>
+<p>The <em class="term">Fast Fourier Transform</em> (FFT) is a clever algorithm that computes the Fourier transform quickly enough to run on live audio. Feed it a short slice of samples and it returns, almost instantly, the strength of each frequency in that slice — the sound's "recipe of pitches" for that moment. It is one of the most-used algorithms in computing, quietly underneath every audio app, wireless signal, and image compressor.</p>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-spectrogram">The spectrogram and the mel scale</h3>
+<p>A single FFT describes one instant. But speech is a moving target — pitches shift as you form each syllable. So we do the natural thing: chop the audio into many tiny overlapping slices (about 25 milliseconds each), run an FFT on every slice, and lay the results side by side in time order. The result is a <em class="term">spectrogram</em> — a picture of sound where the horizontal axis is time, the vertical axis is frequency, and brightness shows how strong each frequency is at each moment.</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 640 250" role="img" aria-label="A waveform transformed into a spectrogram showing frequency bands over time">
+  <g font-size="10">
+    <!-- waveform -->
+    <text x="40" y="30" class="d-soft" font-size="11">waveform — height over time</text>
+    <path d="M40,60 q10,-22 20,0 t20,0 t20,0 q10,-30 20,0 t20,0 q10,-14 20,0 t20,0 t20,0 q10,-26 20,0 t20,0 t20,0 q10,-18 20,0 t20,0 t20,0 q10,-24 20,0 t20,0 t20,0 q10,-12 20,0 t20,0"
+          fill="none" class="d-line" stroke-width="1.4"/>
+    <!-- arrow -->
+    <text x="320" y="108" text-anchor="middle" class="d-accent-f" font-size="11">↓ slice + FFT each slice ↓</text>
+    <!-- spectrogram grid -->
+    <text x="40" y="132" class="d-soft" font-size="11">spectrogram — frequency (↑) over time (→), brightness = strength</text>
+    <g>
+      <!-- rows = frequency bands, columns = time slices; opacity encodes energy -->
+      <g transform="translate(40,142)">
+        <!-- build a small grid 20 cols x 6 rows -->
+        <g class="d-accent-f">
+          <rect x="0"   y="0"  width="26" height="14" opacity="0.15"/><rect x="0" y="16" width="26" height="14" opacity="0.30"/><rect x="0" y="32" width="26" height="14" opacity="0.70"/><rect x="0" y="48" width="26" height="14" opacity="0.85"/><rect x="0" y="64" width="26" height="14" opacity="0.40"/><rect x="0" y="80" width="26" height="14" opacity="0.10"/>
+          <rect x="28"  y="0"  width="26" height="14" opacity="0.10"/><rect x="28" y="16" width="26" height="14" opacity="0.55"/><rect x="28" y="32" width="26" height="14" opacity="0.80"/><rect x="28" y="48" width="26" height="14" opacity="0.35"/><rect x="28" y="64" width="26" height="14" opacity="0.20"/><rect x="28" y="80" width="26" height="14" opacity="0.10"/>
+          <rect x="56"  y="0"  width="26" height="14" opacity="0.20"/><rect x="56" y="16" width="26" height="14" opacity="0.25"/><rect x="56" y="32" width="26" height="14" opacity="0.45"/><rect x="56" y="48" width="26" height="14" opacity="0.90"/><rect x="56" y="64" width="26" height="14" opacity="0.75"/><rect x="56" y="80" width="26" height="14" opacity="0.30"/>
+          <rect x="84"  y="0"  width="26" height="14" opacity="0.60"/><rect x="84" y="16" width="26" height="14" opacity="0.80"/><rect x="84" y="32" width="26" height="14" opacity="0.30"/><rect x="84" y="48" width="26" height="14" opacity="0.15"/><rect x="84" y="64" width="26" height="14" opacity="0.10"/><rect x="84" y="80" width="26" height="14" opacity="0.10"/>
+          <rect x="112" y="0"  width="26" height="14" opacity="0.10"/><rect x="112" y="16" width="26" height="14" opacity="0.20"/><rect x="112" y="32" width="26" height="14" opacity="0.65"/><rect x="112" y="48" width="26" height="14" opacity="0.85"/><rect x="112" y="64" width="26" height="14" opacity="0.55"/><rect x="112" y="80" width="26" height="14" opacity="0.15"/>
+          <rect x="140" y="0"  width="26" height="14" opacity="0.25"/><rect x="140" y="16" width="26" height="14" opacity="0.70"/><rect x="140" y="32" width="26" height="14" opacity="0.90"/><rect x="140" y="48" width="26" height="14" opacity="0.40"/><rect x="140" y="64" width="26" height="14" opacity="0.20"/><rect x="140" y="80" width="26" height="14" opacity="0.10"/>
+          <rect x="168" y="0"  width="26" height="14" opacity="0.15"/><rect x="168" y="16" width="26" height="14" opacity="0.30"/><rect x="168" y="32" width="26" height="14" opacity="0.50"/><rect x="168" y="48" width="26" height="14" opacity="0.80"/><rect x="168" y="64" width="26" height="14" opacity="0.85"/><rect x="168" y="80" width="26" height="14" opacity="0.35"/>
+        </g>
+      </g>
+      <text x="30" y="152" text-anchor="end" class="d-faint" font-size="9">high</text>
+      <text x="30" y="228" text-anchor="end" class="d-faint" font-size="9">low</text>
+    </g>
+  </g>
+</svg>
+<figcaption><b>Sound, re-drawn as a picture.</b> Each column is one time-slice's frequency recipe. Vowels show as steady bright bands; consonants as bursts. This image is what a speech model actually "looks at."</figcaption>
+</figure>
+
+<p>One refinement makes it match human hearing. We don't perceive pitch evenly: the gap between 200 and 400&nbsp;Hz sounds huge, while 5,000 to 5,200&nbsp;Hz is barely noticeable. The <em class="term">mel scale</em> warps the frequency axis to mirror this, spacing out the low frequencies we hear finely and compressing the highs we hear coarsely. A spectrogram drawn on the mel scale is a <em class="term">mel spectrogram</em>, and it is the standard input representation for speech recognition — a compact picture that emphasises exactly the distinctions human ears (and human languages) care about.</p>
+
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>The very first thing Parakeet does with LocalFlow's 16&nbsp;kHz samples is convert them into a mel spectrogram. The neural network never sees raw sample heights; it sees this frequency-over-time image. Everything you'll read about the speech model in Part VII is really about turning that image into words. Notice the elegance: the ADC's job was to capture the wave, and the FFT's job is to throw most of it away and keep only what distinguishes speech sounds.</p>
+</div>
+</div>
+
+<div class="part">
+  <div class="pnum">V</div>
+  <div>
+    <div class="pt-eyebrow">Part Five · Learning outcome 1</div>
+    <h2>Text to Speech</h2>
+    <p class="part-intro">LocalFlow's job is speech-to-text, but its opposite — text-to-speech — is worth understanding in its own right, and it played a real role in building the app. Running the pipeline in reverse also sharpens the intuitions we need for recognition.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-tts">The inverse problem: making sound from text</h3>
+<p><em class="term">Text-to-speech</em> (TTS) takes written words and produces audio that sounds like a person reading them aloud. It is the mirror image of everything in Parts III and IV: instead of measuring a wave and extracting its meaning, TTS starts from meaning and must <em>synthesise</em> a wave — ultimately a list of samples the ADC's process could have produced, which a speaker then turns back into moving air. The task splits into two questions: <em>what</em> should be said (which sounds, in which order, with what rhythm and pitch) and <em>how</em> to render those sounds as an actual waveform.</p>
+<p>The "what" is subtler than it looks. Text is full of ambiguity a reader resolves unconsciously: "read" changes vowel with tense, "2026" is spoken as a year, "Dr." is "Doctor" or "Drive" depending on context, and a question rises in pitch at the end. A TTS system needs a <em>front end</em> that normalises text into a precise sequence of <em class="term">phonemes</em> — the atomic speech sounds of a language, like the "k," "a," and "t" in "cat" — annotated with timing and intonation. The "how" is the <em>back end</em> that turns that phoneme plan into sound. Three generations of back ends are worth knowing.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h">Concatenative synthesis</h3>
+<p>The oldest practical approach, <em class="term">concatenative</em> TTS, records a human voice actor reading for hours, chops the recording into thousands of tiny snippets of real speech sounds, and then, to say a new sentence, stitches the right snippets together end to end. Because every fragment is genuine human audio, the individual sounds are realistic — but the joins can be audible, giving that faintly stitched, robotic quality of older GPS and phone-menu voices. It is a collage made of real photographs: authentic pieces, visible seams.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h">Parametric synthesis</h3>
+<p><em class="term">Parametric</em> TTS takes a different bet: instead of storing snippets, it stores a mathematical <em>model</em> of how the voice behaves and generates the waveform from a set of control values (parameters) — pitch, the resonances of the vocal tract, and so on, adjusted moment to moment. It needs little storage and can bend pitch and speed freely, but the model is a simplification, so the voice tends to sound smooth yet slightly artificial, like a very good synthesiser rather than a person. It is a painting of the voice rather than a collage of it.</p>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h">Neural text-to-speech</h3>
+<p>Modern TTS is <em class="term">neural</em>: it uses the same kind of machine-learned networks we meet properly in Part VI. Trained on many hours of recorded speech paired with transcripts, a neural TTS system learns the staggeringly complex relationship between text and natural-sounding audio directly from data, rather than from hand-written rules. It typically works in two stages that should feel familiar: first predict a mel spectrogram from the text (the same frequency-over-time picture from Part IV), then a second network called a <em>vocoder</em> converts that spectrogram into the final waveform.</p>
+<p>The results are close enough to human that they carry emotion and natural rhythm — this is the technology behind today's most convincing assistant voices and audiobook narrators. Notice the deep symmetry with recognition: speech recognition goes <em>waveform → spectrogram → meaning</em>, while neural TTS goes <em>meaning → spectrogram → waveform</em>. The mel spectrogram sits at the centre of both, the shared currency between sound and sense. Understanding one direction genuinely teaches you the other.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h" id="s-tts-how">How LocalFlow actually used TTS</h3>
+<p>macOS ships a built-in TTS system, reachable through a command named <code>say</code>, which speaks any text you give it (it also powers VoiceOver, Apple's screen reader for blind and low-vision users — TTS is an accessibility cornerstone, not just a convenience).</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>A speech-to-text app has a bootstrapping problem: to test it you need spoken audio, but reading test sentences aloud by hand is slow and inconsistent. So during development we used the system TTS to <em>generate</em> test speech — feeding it a sentence deliberately full of filler words ("um, so I think we should, uh, move the meeting…") and saving the spoken result as an audio file. That synthetic recording ran through the whole pipeline again and again to measure speed, memory, and cleanup quality, all without a human touching a microphone. TTS became the reliable, repeatable voice that let us validate the recogniser. It is a small but genuine example of two AI systems, opposites of each other, cooperating to build a third thing.</p>
+</div>
+</div>
+
+<div class="part">
+  <div class="pnum">VI</div>
+  <div>
+    <div class="pt-eyebrow">Part Six</div>
+    <h2>Machine Learning</h2>
+    <p class="part-intro">Both of LocalFlow's brains — the speech recogniser and the language model — are the same species of thing: a neural network. This Part explains what that is, without a single equation, because the next two Parts assume it.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-ml">Learning from data instead of rules</h3>
+<p>For most of computing history, to make a machine do something you wrote explicit rules: <em>if</em> this, <em>then</em> that. That works for taxes and traffic lights, but it collapses for speech. Nobody can write down the rules that distinguish your "b" from your "p" across every accent, cold, whisper, and noisy café — the number of cases is effectively infinite and the boundaries are fuzzy. Some problems are too subtle for rules that a human could ever finish writing.</p>
+<p><em class="term">Machine learning</em> is the alternative: instead of programming the rules, you show the computer thousands or millions of <em>examples</em> and let it discover the pattern itself. You give it recordings paired with their correct transcripts and say, in effect, "figure out whatever internal settings make you produce the right transcript for these — then apply that to recordings you've never heard." The rules are never written by a person; they are <em>learned</em> from the data. This one shift is what made reliable speech recognition, translation, and chatbots possible.</p>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-nn">The neuron and the neural network</h3>
+<p>The workhorse of machine learning is the <em class="term">neural network</em>, named by loose analogy to the brain. Its basic unit, an <em class="term">artificial neuron</em>, is almost embarrassingly simple: it takes several numbers in, multiplies each by its own <em class="term">weight</em> (a number expressing how much that input matters), adds the results, and passes the total through a simple threshold that decides how strongly to "fire." One neuron detects one faint pattern in its inputs.</p>
+<p>The power comes from arrangement. Stack neurons into <em class="term">layers</em>, feed the outputs of one layer as the inputs of the next, and something remarkable emerges: early layers detect tiny primitive patterns, and each successive layer combines those into something more abstract. In a speech model, the first layers might react to simple frequency edges in the spectrogram, middle layers to fragments of phonemes, and later layers to whole sounds and words. Nobody designs those intermediate detectors; they arise on their own during learning. Depth — many layers — is why these are called <em>deep</em> networks and the field <em>deep learning</em>.</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 600 220" role="img" aria-label="A neural network with an input layer, two hidden layers, and an output layer, fully connected">
+  <g>
+    <g class="d-line" stroke-width="0.6" opacity="0.5">
+      <!-- connections L1->L2 -->
+      <line x1="80" y1="55" x2="220" y2="45"/><line x1="80" y1="55" x2="220" y2="110"/><line x1="80" y1="55" x2="220" y2="175"/>
+      <line x1="80" y1="110" x2="220" y2="45"/><line x1="80" y1="110" x2="220" y2="110"/><line x1="80" y1="110" x2="220" y2="175"/>
+      <line x1="80" y1="165" x2="220" y2="45"/><line x1="80" y1="165" x2="220" y2="110"/><line x1="80" y1="165" x2="220" y2="175"/>
+      <!-- L2->L3 -->
+      <line x1="220" y1="45" x2="360" y2="45"/><line x1="220" y1="45" x2="360" y2="110"/><line x1="220" y1="45" x2="360" y2="175"/>
+      <line x1="220" y1="110" x2="360" y2="45"/><line x1="220" y1="110" x2="360" y2="110"/><line x1="220" y1="110" x2="360" y2="175"/>
+      <line x1="220" y1="175" x2="360" y2="45"/><line x1="220" y1="175" x2="360" y2="110"/><line x1="220" y1="175" x2="360" y2="175"/>
+      <!-- L3->out -->
+      <line x1="360" y1="45" x2="500" y2="85"/><line x1="360" y1="45" x2="500" y2="135"/>
+      <line x1="360" y1="110" x2="500" y2="85"/><line x1="360" y1="110" x2="500" y2="135"/>
+      <line x1="360" y1="175" x2="500" y2="85"/><line x1="360" y1="175" x2="500" y2="135"/>
+    </g>
+    <g class="d-fill d-stroke" stroke-width="1.3">
+      <circle cx="80" cy="55" r="13"/><circle cx="80" cy="110" r="13"/><circle cx="80" cy="165" r="13"/>
+      <circle cx="220" cy="45" r="13"/><circle cx="220" cy="110" r="13"/><circle cx="220" cy="175" r="13"/>
+      <circle cx="360" cy="45" r="13"/><circle cx="360" cy="110" r="13"/><circle cx="360" cy="175" r="13"/>
+    </g>
+    <g class="d-fill-accent d-accent-s" stroke-width="1.4">
+      <circle cx="500" cy="85" r="13"/><circle cx="500" cy="135" r="13"/>
+    </g>
+    <g font-size="10" class="d-faint" text-anchor="middle">
+      <text x="80" y="200">input</text>
+      <text x="290" y="200">hidden layers (learned detectors)</text>
+      <text x="500" y="200">output</text>
+    </g>
+  </g>
+</svg>
+<figcaption><b>A neural network.</b> Numbers flow left to right; each connection has a learned weight. The mel spectrogram enters at the left; a decision about what was said emerges at the right. Real speech models have far more neurons and layers than shown.</figcaption>
+</figure>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h">Weights, parameters, and what "a model" is</h3>
+<p>Every connection between neurons carries a weight, and a large network has millions or billions of them. Collectively these numbers are the network's <em class="term">parameters</em>, and they <em>are</em> the model — a "3-billion-parameter model" is a network with three billion adjustable numbers. A <em class="term">model</em>, then, is nothing more mystical than an architecture (how the neurons are wired) plus the specific parameter values that make it good at a task. Save those numbers to a file and you can load the trained brain onto any machine.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h">Training versus inference</h3>
+<p>There are two distinct phases in a model's life. <em class="term">Training</em> is the expensive, one-time process of <em>finding</em> good parameter values: the network is shown example after example, its output is compared to the correct answer, and every weight is nudged a hair in the direction that reduces the error — repeated billions of times on giant computers over days or weeks. <em class="term">Inference</em> is the cheap, repeated act of <em>using</em> a trained model: feed in a new input, let the numbers flow through the fixed weights once, read the answer.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>LocalFlow never trains anything. Both its models were trained by others on large clusters and released as files of finished parameters. The app only does inference — and only on your Mac. When you dictate, your audio flows through Parakeet's fixed weights once; the transcript flows through the language model's fixed weights once. This is why a laptop can do in a fraction of a second what took a data centre weeks to learn.</p>
+</div>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h">Quantization: making models small enough to fit</h3>
+<p>A parameter is a number, and a number can be stored precisely (many bits) or approximately (few bits). <em class="term">Quantization</em> — the same idea as audio bit depth from Part III, now applied to model weights — stores each parameter with fewer bits, trading a sliver of accuracy for a large saving in memory and speed. A model quantized to 4 bits per weight is roughly a quarter the size of the full-precision original, usually with barely perceptible loss.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>Remember the 16&nbsp;GB ceiling from Part II. LocalFlow's language model is quantized (the tag <code>Q4</code> means four-bit weights), which shrinks a 3-billion-parameter model to roughly 2&nbsp;GB of RAM instead of 6+. That compression is precisely what lets the language model and the speech model coexist in memory without spilling onto the slow SSD. Quantization is the quiet reason the whole thing runs on a thin laptop.</p>
+</div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-transformer">The Transformer and attention</h3>
+<p>One network design now dominates both speech and language: the <em class="term">Transformer</em>. Its defining trick is a mechanism called <em class="term">attention</em>, and the idea is intuitive once named. When you interpret a word, you don't consider it in isolation — you weigh it against the other words around it. In "the bank of the river" versus "money in the bank," the word "bank" means opposite things, and you know which by <em>attending</em> to "river" or "money." Attention lets a network do the same: for each piece of the input, it learns which other pieces to look at, and how much, to interpret it correctly.</p>
+<p>This matters for sequences — audio and text are both sequences, where meaning depends on context stretched across time. Earlier network designs struggled to connect a word to something said much earlier; attention lets every element look directly at every other element, no matter how far apart, and decide what's relevant. That single capability, scaled up with the deep layers and huge parameter counts above, is the engine behind modern speech recognition <em>and</em> modern chatbots. The two models in LocalFlow are cousins: both are Transformers, one specialised for turning sound into text, the other for turning text into better text.</p>
+<div class="aside"><b>Why one idea powers both stages.</b> It is worth pausing on the economy here. The same architectural insight — let every part of a sequence attend to every other part — is what recognises your speech <em>and</em> what cleans up the transcript. LocalFlow is, in a sense, the same brilliant idea pointed at a problem twice.</div>
+</div>
+
+<div class="part">
+  <div class="pnum">VII</div>
+  <div>
+    <div class="pt-eyebrow">Part Seven · Learning outcome 2a</div>
+    <h2>Automatic Speech Recognition</h2>
+    <p class="part-intro">Now the payoff of Parts III, IV, and VI converge: turning the mel spectrogram of your voice into a string of text. This is the ASR stage — Stage A of LocalFlow — and, crucially, it produces text that is <em>usable but rough</em>.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-asr">The ASR problem</h3>
+<p><em class="term">Automatic speech recognition</em> (ASR) is the task of converting spoken audio into written words. Stated plainly it sounds simple; in practice it fights several hard facts at once. Speech has no spaces — the sounds of "recognise speech" and "wreck a nice beach" are nearly identical, and only context tells them apart. People talk at different speeds, so the same word occupies different amounts of time. Accents, colds, background noise, and overlapping "um"s all deform the signal. And the mapping is many-to-one: countless slightly different waveforms should all become the same word.</p>
+<p>A modern ASR system meets this with two cooperating capabilities. An <em class="term">acoustic model</em> answers "what sounds are in this audio?" — reading the spectrogram and proposing the likely speech sounds moment by moment. A <em class="term">language model</em> component answers "what words are plausible?" — knowing that "ice cream" is far more likely than "I scream" in most sentences, so it can resolve the acoustic ambiguities. Great recognisers blend both, which is why they can often transcribe a word the audio alone left genuinely unclear.</p>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-conformer">Parakeet's encoder: reading the spectrogram</h3>
+<p>LocalFlow's acoustic model is <em class="term">Parakeet</em>, a family of recognisers built on an architecture called the <em>Conformer</em> — a Transformer (Part VI) augmented with components that are especially good at local audio patterns. Its front section is an <em class="term">encoder</em>: it consumes the mel spectrogram and transforms it, through many attention-bearing layers, into a compact sequence of rich numerical summaries — one summary per short frame of audio, each encoding "here is everything acoustically relevant happening at this instant, in the context of what surrounds it."</p>
+<p>Think of the encoder as an expert listener who cannot yet spell, but who can hear, with perfect attention, exactly which speech sounds are present and how they blend into neighbours. It has digested the whole utterance into a form where the words are <em>almost</em> readable — the remaining job is to commit those acoustic summaries to actual letters.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h" id="s-decode">Tokens, vocabulary, and decoding</h3>
+<p>Recognisers don't emit letters one at a time, nor whole words; they emit <em class="term">tokens</em> — subword chunks like <code>▁the</code>, <code>ing</code>, or <code>▁budget</code>, drawn from a fixed list called the <em class="term">vocabulary</em> (Parakeet's has about a thousand entries). Subword tokens are a sweet spot: common words are single tokens, while rare words are spelled from a few pieces, so the model can produce words it has barely seen. The step that turns the encoder's acoustic summaries into a token sequence is <em class="term">decoding</em>, and it must solve the "speech has no clocks" problem — audio frames arrive far faster than words, so most frames should emit <em>nothing</em>.</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 640 180" role="img" aria-label="Audio frames decoded into tokens, with many frames emitting blank and occasional frames emitting a word piece">
+  <g font-size="10">
+    <text x="20" y="24" class="d-soft" font-size="11">audio frames (many per second) →</text>
+    <g>
+      <!-- frames -->
+      <g class="d-fill d-stroke" stroke-width="1">
+        <rect x="20" y="34" width="34" height="24" rx="4"/><rect x="58" y="34" width="34" height="24" rx="4"/>
+        <rect x="96" y="34" width="34" height="24" rx="4"/><rect x="134" y="34" width="34" height="24" rx="4"/>
+        <rect x="172" y="34" width="34" height="24" rx="4"/><rect x="210" y="34" width="34" height="24" rx="4"/>
+        <rect x="248" y="34" width="34" height="24" rx="4"/><rect x="286" y="34" width="34" height="24" rx="4"/>
+        <rect x="324" y="34" width="34" height="24" rx="4"/><rect x="362" y="34" width="34" height="24" rx="4"/>
+        <rect x="400" y="34" width="34" height="24" rx="4"/><rect x="438" y="34" width="34" height="24" rx="4"/>
+        <rect x="476" y="34" width="34" height="24" rx="4"/><rect x="514" y="34" width="34" height="24" rx="4"/>
+        <rect x="552" y="34" width="34" height="24" rx="4"/>
+      </g>
+      <!-- emitted tokens under frames -->
+      <g text-anchor="middle" class="d-faint">
+        <text x="37" y="86">·</text><text x="75" y="86" class="d-accent-f">▁can</text><text x="113" y="86">·</text>
+        <text x="151" y="86">·</text><text x="189" y="86" class="d-accent-f">▁you</text><text x="227" y="86">·</text>
+        <text x="265" y="86" class="d-accent-f">▁ping</text><text x="303" y="86">·</text><text x="341" y="86">·</text>
+        <text x="379" y="86" class="d-accent-f">▁sar</text><text x="417" y="86" class="d-accent-f">ah</text><text x="455" y="86">·</text>
+        <text x="493" y="86">·</text><text x="531" y="86" class="d-accent-f">?</text><text x="569" y="86">·</text>
+      </g>
+      <text x="20" y="118" class="d-soft" font-size="11">· = blank (emit nothing) · coloured = a token</text>
+      <text x="20" y="150" class="d-ink" font-size="12">assembled → “can you ping sarah?”</text>
+    </g>
+  </g>
+</svg>
+<figcaption><b>Decoding aligns fast audio to slow words.</b> Most frames emit a "blank"; occasional frames emit a token. Special decoders (CTC, and Parakeet's TDT) even let the model <em>skip ahead</em> over silence, which is part of why it is so fast.</figcaption>
+</figure>
+
+<p>Two decoding schemes are worth naming. <em class="term">CTC</em> introduced the "blank" token so a network can emit nothing on most frames and align cleanly to words. Parakeet uses a faster refinement, <em class="term">TDT</em> (token-and-duration), which predicts not only the next token but <em>how many frames to jump forward</em>, letting it stride over silence and steady sounds instead of plodding frame by frame. This is a major reason LocalFlow's transcription lands in well under a fifth of a second.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h" id="s-dirty">Why the transcript comes out "dirty"</h3>
+<p>Here is the pivot of the whole app. An ASR system faithfully transcribes <em>what you actually said</em> — which is not what you meant to write. It includes every "um" and "uh," every false start and "like," because you spoke them. It has little sense of sentence boundaries, so punctuation is sparse or wrong. It does not know that a new thought deserved a new paragraph. The output is accurate to your <em>speech</em> and therefore messy as <em>writing</em>. This is not a defect to fix in the recogniser; it is the exact reason LocalFlow has a second stage.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>A real captured example: Parakeet returned <em>"Um, so I think we should have probably moved the meeting to Thursday because like the client isn't ready yet and, um, we still need to finish the deck…"</em> — every filler intact, punctuation shaky. That raw, dirty transcript is precisely the input handed to Stage B in Part VIII. The recogniser's honesty is the language model's assignment.</p>
+</div>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h" id="s-vad">Voice activity detection</h3>
+<p>Running a speech model over silence is wasted effort and can invent phantom words from background hiss. <em class="term">Voice activity detection</em> (VAD) is a tiny, fast model that does one thing: for each little slice of audio, decide "is this speech, or not?" It acts as a gate in front of the expensive recogniser, letting real speech through and trimming the dead air. LocalFlow uses a well-known compact VAD called <em>Silero</em>, only about two megabytes.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>When you release the key, LocalFlow first runs Silero over the recording to find the stretches that actually contain your voice, splices just those together, and hands only that to Parakeet. A <em>sensitivity</em> setting controls how eager the gate is. The effect is less wasted computation, fewer hallucinated words from room noise, and a snappier result.</p>
+</div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-ane">Running on the Apple Neural Engine via CoreML</h3>
+<p>Recall from Part II that Apple Silicon includes a <em class="term">Neural Engine</em> (ANE) — a block of the chip built specifically for the multiply-and-add arithmetic that neural networks are made of. Running a model there instead of on the general-purpose CPU is dramatically faster and far more power-efficient, and it leaves the CPU free to keep the app responsive. But a model file has to be in the right form to use it. <em class="term">CoreML</em> is Apple's framework for exactly this: you convert a trained model into CoreML's format, and it schedules the computation across CPU, GPU, and Neural Engine automatically.</p>
+<p>Getting a model onto the ANE is finicky work — the model must be converted and its operations expressed in ways the hardware supports. LocalFlow doesn't do this itself; it relies on the <em>FluidAudio</em> library (met in Part II), which ships Parakeet and Silero already converted to CoreML and already tuned to run on the Neural Engine.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>On your MacBook Air, Parakeet transcribes about nine seconds of speech in roughly <strong>120–160 milliseconds</strong> — faster than real time by a wide margin — precisely because CoreML runs it on the Neural Engine rather than the CPU. That speed, plus the fact that the models are just files on your disk, is what makes fully-local, instant dictation feel possible on a thin laptop. During development you would see a harmless warning line from the CoreML compiler; the transcription was unaffected, and recognising which noise to ignore was itself part of the work.</p>
+</div>
+</div>
+
+<div class="part">
+  <div class="pnum">VIII</div>
+  <div>
+    <div class="pt-eyebrow">Part Eight · Learning outcome 2b</div>
+    <h2>The LLM Cleanup</h2>
+    <p class="part-intro">Stage A gave us an honest, messy transcript. Stage B hands it to a language model whose only job is to tidy it — remove fillers, fix punctuation and capitalisation — without ever changing what you meant. Restraint is the entire design.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-lm">Language models: predicting the next token</h3>
+<p>A <em class="term">large language model</em> (LLM) is a Transformer (Part VI) trained on an enormous amount of text with a deceptively narrow objective: given some words, predict the next one. Do that well enough, over trillions of words, and the model absorbs grammar, spelling, punctuation conventions, tone, and a great deal of world knowledge — all as a by-product of getting good at "what comes next?" At its core it is an extraordinarily well-read autocomplete.</p>
+<p>Like the recogniser, an LLM works in <em class="term">tokens</em> — subword chunks of text. It reads your input as tokens and generates its reply one token at a time, each new token chosen in light of everything so far (this is attention doing its work). Because it has seen mountains of well-edited writing, it has a fluent, implicit sense of where a comma belongs, how a sentence should be capitalised, and what a stray "um" looks like — which is exactly the competence LocalFlow needs, and no more.</p>
+<div class="aside"><b>The double-edged sword.</b> An LLM's fluency is also its danger: left to its instincts it loves to <em>improve</em> text — rephrasing, summarising, embellishing. For a dictation tool that would be a disaster; you want <em>your</em> words, cleaned, not the model's paraphrase. Most of Stage B's engineering is about holding this powerful, eager tool on a very short leash.</div>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h">System prompt, temperature, and sampling</h3>
+<p>Two controls shape an LLM's behaviour. The <em class="term">system prompt</em> is a standing instruction, separate from the user's text, that sets the model's role and rules for the whole exchange — the job description it reads before every task. <em class="term">Temperature</em> is a dial on randomness: at each step the model has probabilities over possible next tokens, and high temperature makes it pick more adventurously (useful for creative writing) while low temperature makes it stick to the safest, most predictable choice (useful when you want faithful, boring reliability).</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>LocalFlow gives the model a fixed system prompt that spells out the leash in plain words: fix <em>only</em> filler words, punctuation, capitalisation, and paragraph breaks; do <em>not</em> rephrase, summarise, add, or remove meaning; output only the corrected text with no preamble. It sets a low temperature (about 0.2) so the model stays faithful rather than creative. Together these turn a freewheeling writer into a disciplined copy-editor.</p>
+</div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-ollama">Ollama: running a language model locally</h3>
+<p>Chatbots usually live in the cloud — you type, your words travel to a company's servers, a model there replies. LocalFlow refuses that on principle: your dictation should never leave your Mac. <em class="term">Ollama</em> is a free program that runs language models entirely on your own computer. You "pull" a model once (downloading its parameter file), and Ollama keeps it ready, loading it into memory and running inference locally on request. No account, no internet, no data leaving the machine.</p>
+<p>Ollama runs as a small always-on <em class="term">server</em> — a program that sits quietly, waiting for other programs to ask it for something. LocalFlow is its <em class="term">client</em>: when it needs a transcript cleaned, it sends the text to Ollama and gets the cleaned version back. The two are separate programs on the same computer, which raises a natural question — how does one program on your Mac <em>talk</em> to another? That question opens the last foundational topic in the guide.</p>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-net">How programs talk: IP, ports, and HTTP</h3>
+<p>Even though LocalFlow and Ollama live on the same machine, they communicate using the same technology the entire internet runs on — because it is the universal, well-understood way for programs to exchange messages. A few plain definitions build the whole picture.</p>
+
+<div class="def-block blockwrap">
+  <span class="tier t-def">Definition</span>
+  <h3 class="block-h">IP address</h3>
+  <p>An <strong>IP address</strong> (Internet Protocol address) is a numeric label identifying a device on a network — like a postal address for a computer, e.g. <code>142.250.72.14</code>. Messages are addressed to an IP so the network knows where to deliver them.</p>
+</div>
+
+<div class="def-block blockwrap">
+  <span class="tier t-def">Definition</span>
+  <h3 class="block-h">localhost</h3>
+  <p><strong>localhost</strong> (the special address <code>127.0.0.1</code>) means "this very computer." A message sent to localhost never touches the network or the internet — it loops straight back to another program on the same machine.</p>
+</div>
+
+<div class="def-block blockwrap">
+  <span class="tier t-def">Definition</span>
+  <h3 class="block-h">Port</h3>
+  <p>A <strong>port</strong> is a numbered doorway on a machine, letting one device run many services at once without confusion. If the IP is the building's street address, the port is the specific apartment number. Ollama listens on port <code>11434</code>.</p>
+</div>
+
+<p>Stack those together and you can address a specific program on a specific machine: <code>http://localhost:11434</code> means "the service waiting at doorway 11434 on this same computer" — which is Ollama. The <em class="term">HTTP</em> part is the <em>protocol</em>: an agreed-upon format for request-and-reply messages, the same one your browser uses to fetch web pages. A program sends an HTTP <em>request</em> ("here is some text, please process it") and receives an HTTP <em>response</em> ("here is the result").</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 620 170" role="img" aria-label="LocalFlow sending an HTTP request to Ollama on localhost port 11434 and receiving cleaned text, all on one machine">
+  <defs>
+    <marker id="arrowR" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" class="d-accent-f"/></marker>
+  </defs>
+  <g font-size="11">
+    <rect x="20" y="55" width="150" height="60" rx="10" class="d-fill d-stroke" stroke-width="1.3"/>
+    <text x="95" y="80" text-anchor="middle" class="d-ink" font-size="12">LocalFlow</text>
+    <text x="95" y="98" text-anchor="middle" class="d-faint">the client</text>
+
+    <rect x="450" y="55" width="150" height="60" rx="10" class="d-fill-accent d-accent-s" stroke-width="1.4"/>
+    <text x="525" y="80" text-anchor="middle" class="d-ink" font-size="12">Ollama</text>
+    <text x="525" y="98" text-anchor="middle" class="d-faint">the server · port 11434</text>
+
+    <path d="M172,74 C280,54 340,54 448,74" fill="none" class="d-accent-s" stroke-width="1.6" marker-end="url(#arrowR)"/>
+    <text x="310" y="50" text-anchor="middle" class="d-soft">HTTP request: dirty transcript + rules</text>
+    <path d="M448,100 C340,120 280,120 172,100" fill="none" class="d-line" stroke-width="1.6" marker-end="url(#arrowR)"/>
+    <text x="310" y="140" text-anchor="middle" class="d-soft">HTTP response: cleaned transcript</text>
+
+    <rect x="8" y="30" width="604" height="112" rx="14" fill="none" class="d-stroke" stroke-width="1" stroke-dasharray="5 5"/>
+    <text x="16" y="24" class="d-faint">one machine — the whole exchange stays on localhost, never the internet</text>
+  </g>
+</svg>
+<figcaption><b>Two programs, one laptop, a private conversation.</b> LocalFlow talks to Ollama with the internet's own language — but addressed to <code>localhost</code>, so nothing ever leaves your Mac.</figcaption>
+</figure>
+
+<p>The messages themselves are written in <em class="term">JSON</em> — a simple, human-readable way of writing structured data as labelled fields (a "name: value" list). LocalFlow packs the transcript, the system prompt, and the temperature into a JSON request; Ollama replies with JSON containing the cleaned text. This request-and-reply-in-JSON pattern is called a <em class="term">REST API</em>, and it is how a huge fraction of all software components talk to each other. LocalFlow using it to reach a program on its own machine is the same mechanism that would reach a server across the world — pointed inward for privacy.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h" id="s-constrain">Constraining the model and guarding the output</h3>
+<p>A fluent model on a short leash still occasionally misbehaves — it might prepend "Here is the corrected text:", wrap the reply in quotation marks, or sprinkle in paragraph breaks that a chat message doesn't want. A robust pipeline therefore never trusts the model's output blindly; it <em>sanitises</em> and <em>guards</em> it.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>After the model replies, LocalFlow strips known artefacts (preambles like "Here is the corrected text:", stray quotes, spurious newlines). It then applies a safety guardrail: if the "cleaned" text is suspiciously shorter than the original — a sign the model summarised instead of edited — the app throws it away and keeps the raw transcript. And if Ollama is slow or unreachable, a timeout fires and the raw transcript is pasted anyway. The governing principle: a dictation tool that pastes slightly-messy text is fine; one that hangs, or silently rewrites your meaning, is not. The model is treated as a helpful but untrusted assistant whose work is always checked.</p>
+</div>
+</div>
+
+<div class="part">
+  <div class="pnum">IX</div>
+  <div>
+    <div class="pt-eyebrow">Part Nine · Learning outcome 3</div>
+    <h2>Operating-System Integration</h2>
+    <p class="part-intro">The models are only half the app. The other half is a negotiation with macOS: to notice a key held in <em>any</em> application, and to place text into <em>any</em> other app's text field. This is where a dictation tool actually lives or dies.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-keypress">The anatomy of a keypress</h3>
+<p>Follow a single keystroke from finger to program. Under each key sits a switch; pressing it completes a circuit (the very idea from Part I). A small controller inside the keyboard notices which switch closed and sends the operating system a <em class="term">scan code</em> — a raw hardware number identifying the physical key's position, not its letter. macOS receives this, translates it according to your keyboard layout into a <em class="term">key code</em> and ultimately a character, and then must decide <em>which program</em> should hear about it.</p>
+<p>Normally the answer is "only the app you're currently using" — keystrokes go to the focused window, which is why typing in one app doesn't leak into another. This is a sensible default and a privacy protection. But a dictation tool needs to break it: LocalFlow must notice its trigger key while you are working in Slack, a browser, or your editor — apps it has nothing to do with. Listening to keys destined for other programs is a special, powerful privilege, and the rest of this Part is about earning and using it responsibly.</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 640 150" role="img" aria-label="A keypress traveling from the physical key through the keyboard controller, the OS, to the focused app or a global listener">
+  <defs><marker id="arrowK" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" class="d-accent-f"/></marker></defs>
+  <g font-size="10">
+    <rect x="10"  y="50" width="96" height="50" rx="8" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="58"  y="72" text-anchor="middle" class="d-ink">key switch</text>
+    <text x="58"  y="88" text-anchor="middle" class="d-faint">closes circuit</text>
+
+    <rect x="140" y="50" width="96" height="50" rx="8" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="188" y="72" text-anchor="middle" class="d-ink">controller</text>
+    <text x="188" y="88" text-anchor="middle" class="d-faint">scan code</text>
+
+    <rect x="270" y="50" width="96" height="50" rx="8" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="318" y="72" text-anchor="middle" class="d-ink">macOS</text>
+    <text x="318" y="88" text-anchor="middle" class="d-faint">→ key code</text>
+
+    <rect x="410" y="16" width="120" height="44" rx="8" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="470" y="42" text-anchor="middle" class="d-soft">focused app</text>
+
+    <rect x="410" y="90" width="120" height="44" rx="8" class="d-fill-accent d-accent-s" stroke-width="1.4"/>
+    <text x="470" y="110" text-anchor="middle" class="d-ink">LocalFlow’s listener</text>
+    <text x="470" y="124" text-anchor="middle" class="d-faint">(privileged)</text>
+
+    <line x1="106" y1="75" x2="138" y2="75" class="d-line" stroke-width="1.3" marker-end="url(#arrowK)"/>
+    <line x1="236" y1="75" x2="268" y2="75" class="d-line" stroke-width="1.3" marker-end="url(#arrowK)"/>
+    <line x1="366" y1="70" x2="408" y2="42" class="d-line" stroke-width="1.3" marker-end="url(#arrowK)"/>
+    <line x1="366" y1="80" x2="408" y2="108" class="d-accent-s" stroke-width="1.5" marker-end="url(#arrowK)"/>
+  </g>
+</svg>
+<figcaption><b>Where LocalFlow taps in.</b> Ordinary keystrokes reach only the focused app. A global listener asks macOS for a copy of key events <em>system-wide</em> — the privilege that makes a push-to-talk key work anywhere.</figcaption>
+</figure>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h">Virtual key codes, and why Right Option is 61</h3>
+<p>Every key has a stable numeric identifier called a <em class="term">virtual key code</em>, independent of what letter it might type. macOS assigns the Right Option key the number <strong>61</strong>. Modifier keys (Option, Command, Control, Shift) are attractive as push-to-talk triggers because they don't produce a character on their own — holding Right Option types nothing — so repurposing one doesn't interfere with normal typing.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>LocalFlow's default trigger is virtual key code 61 — Right Option. When its listener sees key 61 pressed, recording starts; when it sees 61 released, recording stops and the pipeline runs. You can pick a different key in settings, but the modifier-key logic is why the default feels invisible: it never collides with the words you're typing.</p>
+</div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-hotkey">The global hotkey: event taps and monitors</h3>
+<p>To hear keys system-wide, a program asks macOS to install an <em class="term">event tap</em> — a hook into the stream of input events flowing through the system, so the program receives a copy of each keystroke no matter which app is focused. This is the modern, supported mechanism (an older method existed but is deprecated). An event tap is exactly the kind of powerful capability the OS guards behind a permission, which is the subject of the next section.</p>
+<p>There is a subtlety worth surfacing because it shaped LocalFlow's design. There is more than one way to listen globally, and they require <em>different</em> permissions. A full event tap needs a permission called Input Monitoring. But for modifier keys specifically, a lighter mechanism — a global <em>event monitor</em> — works with only the Accessibility permission, which the app needs anyway (for pasting). Recognising that a cheaper path existed let LocalFlow drop a permission requirement entirely.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>LocalFlow tries the full event tap first; if Input Monitoring hasn't been granted, it falls back to the lighter monitor that rides on the Accessibility permission. The user-visible result: for the default Right Option trigger, you only ever need to grant <em>one</em> permission (Accessibility), not two. A piece of systems knowledge became one fewer hoop for you to jump through.</p>
+</div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-tcc">Permissions and why code signing matters</h3>
+<p>macOS does not let any program silently watch your keyboard or read your microphone. These capabilities are gated by a security system called <em class="term">TCC</em> (Transparency, Consent, and Control) — the machinery behind those "App X wants to access your Microphone" prompts. The relevant permissions here are <em>Microphone</em>, <em>Accessibility</em> (permission to observe input and to control other apps, which powers both the hotkey fallback and pasting), and optionally <em>Input Monitoring</em>. You grant them once in System Settings, and macOS remembers.</p>
+<p>But <em>remembers for whom?</em> This is the deep part. macOS must tie a granted permission to a specific app, and it identifies apps not by name (names are trivial to fake) but by <em class="term">code signature</em> — a cryptographic fingerprint of the app's exact contents, produced when the app is <em>signed</em> by its developer. When you grant Accessibility to LocalFlow, TCC records the permission against that fingerprint. If the fingerprint later changes, macOS sees a <em>different</em> app and the old grant no longer applies.</p>
+
+<div class="aside"><b>The bug that taught the lesson.</b> Early in development, every rebuild of LocalFlow used a throwaway "ad-hoc" signature — a <em>new</em> fingerprint each time. So each new build looked, to TCC, like a brand-new app it had never heard of, and the permissions you had granted moments earlier simply didn't apply. The symptom ("it forgets my permissions every time") looked like a bug in the app's logic; the real cause lived three layers down, in how macOS binds trust to a cryptographic identity. The fix was to give the app a single stable signing identity so its fingerprint stops changing — after which permissions persist across rebuilds.</div>
+
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>LocalFlow is now signed with a stable self-made identity, so once you grant Microphone and Accessibility, the grants stick. This episode is also the headline engineering lesson of the whole project, revisited in Part XI: for an app that touches protected capabilities, understanding that <em>permissions are keyed to code-signing identity</em> is as important as any line of the app's own code.</p>
+</div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-inject">Getting the text onto your screen</h3>
+<p>The final station: the cleaned text exists inside LocalFlow, but it needs to appear in whatever app your cursor is in — an app LocalFlow doesn't control and can't reach into directly. There are two general ways to put text into someone else's text field, and LocalFlow uses both.</p>
+<p>The primary method leans on the <em class="term">clipboard</em> (macOS calls it the <em>pasteboard</em>) — the shared holding area behind copy and paste. LocalFlow places the cleaned text on the clipboard, then <em>synthesises</em> a Command-V keystroke — a fake but system-level "paste" event — so the focused app pastes the text as if you had. Because this works through the app's own normal paste path, it works almost everywhere. Synthesising input events, again, requires the Accessibility permission — the same privilege as the hotkey fallback.</p>
+<p>One courtesy matters: hijacking the clipboard would erase whatever you had copied. So LocalFlow <em>saves</em> the current clipboard contents first, does its paste, then <em>restores</em> your original clipboard a moment later — you never notice it borrowed the space. A second, fallback method exists for the rare apps that block synthetic paste: LocalFlow can instead synthesise the individual characters as if typed on a keyboard, letter by letter. Slower, but it gets through where paste won't.</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 640 170" role="img" aria-label="LocalFlow saves the clipboard, sets cleaned text, synthesizes Command-V into the focused app, then restores the clipboard">
+  <g font-size="10.5" text-anchor="middle">
+    <g class="d-fill d-stroke" stroke-width="1.2">
+      <rect x="12"  y="60" width="120" height="46" rx="8"/>
+      <rect x="176" y="60" width="120" height="46" rx="8"/>
+      <rect x="504" y="60" width="124" height="46" rx="8"/>
+    </g>
+    <rect x="340" y="60" width="120" height="46" rx="8" class="d-fill-accent d-accent-s" stroke-width="1.4"/>
+    <text x="72"  y="80" class="d-ink">1 · save your</text><text x="72"  y="95" class="d-faint">clipboard</text>
+    <text x="236" y="80" class="d-ink">2 · put text on</text><text x="236" y="95" class="d-faint">clipboard</text>
+    <text x="400" y="80" class="d-ink">3 · fake ⌘V</text><text x="400" y="95" class="d-faint">app pastes it</text>
+    <text x="566" y="80" class="d-ink">4 · restore</text><text x="566" y="95" class="d-faint">your clipboard</text>
+    <g class="d-line" stroke-width="1.3">
+      <line x1="132" y1="83" x2="174" y2="83"/><line x1="296" y1="83" x2="338" y2="83"/><line x1="460" y1="83" x2="502" y2="83"/>
+    </g>
+    <text x="320" y="140" class="d-faint">the whole borrow-and-return happens in under a second — you never lose what you had copied</text>
+  </g>
+</svg>
+<figcaption><b>A polite paste.</b> LocalFlow borrows the clipboard, pastes through the app's own paste path (so it works everywhere), and quietly hands your clipboard back.</figcaption>
+</figure>
+
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>This is the last step of every dictation: cleaned text hits the pasteboard, a synthetic ⌘V drops it at your cursor in Slack or your editor or a browser field, and your prior clipboard is restored behind the scenes. From held key to pasted sentence, the machine described across nine Parts has now run end to end.</p>
+</div>
+</div>
+
+<div class="part">
+  <div class="pnum">X</div>
+  <div>
+    <div class="pt-eyebrow">Part Ten</div>
+    <h2>How the Programs Are Linked</h2>
+    <p class="part-intro">Every concept now exists. This Part assembles them: the exact path a sentence travels, how LocalFlow's code is divided into cooperating pieces, and the simple state machine that choreographs it all.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-pipeline">The whole pipeline, end to end</h3>
+<p>Here is the complete journey of one dictated sentence, every station now a concept you understand. Read it as the sum of the entire guide.</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 640 470" role="img" aria-label="The full LocalFlow pipeline from key press to pasted text, showing each stage and which Part explained it">
+  <defs><marker id="arrowV" markerWidth="9" markerHeight="9" refX="4.5" refY="8" orient="auto"><path d="M0,0 L9,0 L4.5,9 z" class="d-accent-f"/></marker></defs>
+  <g font-size="11" text-anchor="middle">
+    <!-- stage boxes down the middle -->
+    <g>
+      <rect x="200" y="14"  width="240" height="40" rx="9" class="d-fill d-stroke" stroke-width="1.2"/>
+      <text x="320" y="38" class="d-ink">hold Right Option (key 61)</text>
+
+      <rect x="200" y="72"  width="240" height="40" rx="9" class="d-fill d-stroke" stroke-width="1.2"/>
+      <text x="320" y="96" class="d-ink">mic → 16 kHz mono samples</text>
+
+      <rect x="200" y="130" width="240" height="40" rx="9" class="d-fill d-stroke" stroke-width="1.2"/>
+      <text x="320" y="154" class="d-ink">Silero VAD trims silence</text>
+
+      <rect x="200" y="188" width="240" height="40" rx="9" class="d-fill-accent d-accent-s" stroke-width="1.4"/>
+      <text x="320" y="205" class="d-ink">mel spectrogram → Parakeet</text>
+      <text x="320" y="220" class="d-faint">Stage A · on the Neural Engine</text>
+
+      <rect x="200" y="246" width="240" height="40" rx="9" class="d-fill d-stroke" stroke-width="1.2"/>
+      <text x="320" y="264" class="d-ink">raw, dirty transcript</text>
+      <text x="320" y="278" class="d-faint">“um, so I think we should…”</text>
+
+      <rect x="200" y="304" width="240" height="40" rx="9" class="d-fill-accent d-accent-s" stroke-width="1.4"/>
+      <text x="320" y="321" class="d-ink">Ollama LLM cleanup</text>
+      <text x="320" y="336" class="d-faint">Stage B · via localhost:11434</text>
+
+      <rect x="200" y="362" width="240" height="40" rx="9" class="d-fill d-stroke" stroke-width="1.2"/>
+      <text x="320" y="380" class="d-ink">cleaned text</text>
+      <text x="320" y="394" class="d-faint">“So I think we should…”</text>
+
+      <rect x="200" y="420" width="240" height="40" rx="9" class="d-fill d-stroke" stroke-width="1.2"/>
+      <text x="320" y="444" class="d-ink">paste at your cursor (⌘V)</text>
+    </g>
+    <!-- arrows -->
+    <g class="d-accent-s" stroke-width="1.5">
+      <line x1="320" y1="54"  x2="320" y2="70"  marker-end="url(#arrowV)"/>
+      <line x1="320" y1="112" x2="320" y2="128" marker-end="url(#arrowV)"/>
+      <line x1="320" y1="170" x2="320" y2="186" marker-end="url(#arrowV)"/>
+      <line x1="320" y1="228" x2="320" y2="244" marker-end="url(#arrowV)"/>
+      <line x1="320" y1="286" x2="320" y2="302" marker-end="url(#arrowV)"/>
+      <line x1="320" y1="344" x2="320" y2="360" marker-end="url(#arrowV)"/>
+      <line x1="320" y1="402" x2="320" y2="418" marker-end="url(#arrowV)"/>
+    </g>
+    <!-- part references left -->
+    <g text-anchor="end" class="d-faint" font-size="10">
+      <text x="185" y="38">Part IX</text>
+      <text x="185" y="96">Part III</text>
+      <text x="185" y="154">Part VII</text>
+      <text x="185" y="212">Parts IV·VI·VII</text>
+      <text x="185" y="270">Part VII</text>
+      <text x="185" y="328">Parts VI·VIII</text>
+      <text x="185" y="386">Part VIII</text>
+      <text x="185" y="444">Part IX</text>
+    </g>
+    <!-- guarantees right -->
+    <g text-anchor="start" class="d-soft" font-size="10">
+      <text x="455" y="212">~150 ms</text>
+      <text x="455" y="328">~1 s (or skip)</text>
+      <text x="455" y="444">clipboard restored</text>
+    </g>
+  </g>
+</svg>
+<figcaption><b>Nine Parts, one gesture.</b> Left column: where each stage was explained. If the cleanup is slow or the language model is down, the pipeline skips Stage B and pastes the raw transcript — it never stalls.</figcaption>
+</figure>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-modules">The module architecture: one engine, two faces</h3>
+<p>LocalFlow is not one monolithic blob of code; it is deliberately split into three pieces, an arrangement that turned out to be one of the project's best decisions. At the centre is a shared <em class="term">engine</em> — a library holding all the real logic: the recorder, the VAD-plus-Parakeet transcriber, the Ollama client, the hotkey listener, the text injector, the settings. This engine has no user interface at all; it just <em>does the work</em>.</p>
+<p>Around that engine sit two thin "faces." One is a <em class="term">command-line tool</em>: a bare, text-only program that runs the whole pipeline from a terminal and prints timings and memory usage. The other is the <em class="term">menu-bar app</em>: the real product, living as a small icon at the top of your screen with its onboarding, settings, and recording indicator. Both faces call into the exact same engine, so the logic exists once and is exercised two ways.</p>
+
+<figure>
+<svg class="diagram" viewBox="0 0 600 220" role="img" aria-label="A shared core engine used by both a command-line tool and the menu-bar app">
+  <defs><marker id="arrowM" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" class="d-accent-f"/></marker></defs>
+  <g font-size="11" text-anchor="middle">
+    <rect x="180" y="140" width="240" height="64" rx="12" class="d-fill-accent d-accent-s" stroke-width="1.5"/>
+    <text x="300" y="166" class="d-ink" font-size="12">Core engine</text>
+    <text x="300" y="184" class="d-faint" font-size="10">recorder · VAD+ASR · Ollama client · hotkey · injector</text>
+
+    <rect x="60"  y="26" width="200" height="58" rx="10" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="160" y="50" class="d-ink">CLI test harness</text>
+    <text x="160" y="68" class="d-faint" font-size="10">prints latency + memory</text>
+
+    <rect x="340" y="26" width="200" height="58" rx="10" class="d-fill d-stroke" stroke-width="1.2"/>
+    <text x="440" y="50" class="d-ink">Menu-bar app</text>
+    <text x="440" y="68" class="d-faint" font-size="10">onboarding · settings · indicator</text>
+
+    <line x1="200" y1="138" x2="170" y2="86" class="d-line" stroke-width="1.4" marker-end="url(#arrowM)"/>
+    <line x1="400" y1="138" x2="430" y2="86" class="d-line" stroke-width="1.4" marker-end="url(#arrowM)"/>
+    <text x="300" y="120" class="d-faint" font-size="10">both faces call the same engine</text>
+  </g>
+</svg>
+<figcaption><b>Separate the engine from its faces.</b> The command-line tool let us prove speed, memory, and quality before any interface existed — and it kept testing changes trivial the whole way through.</figcaption>
+</figure>
+
+<p>This separation is why development could proceed in confident phases: the command-line harness validated the entire recognise-and-clean pipeline on real audio before a single pixel of interface was built. When the app misbehaves, the same harness reproduces the problem without any clicking. Good architecture is not decoration; here it directly bought speed and certainty.</p>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h" id="s-state">The state machine</h3>
+<p>At any instant LocalFlow is in exactly one well-defined <em class="term">state</em> — a formal way of saying "the app can only be in one of a small set of clearly-named situations, and moves between them on specific events." A <em class="term">state machine</em> is that set of states plus the allowed transitions. LocalFlow's states read like the story of a dictation: <em>loading models → idle → recording → transcribing → cleaning → idle</em>, with an <em>error</em> state that always recovers back to idle.</p>
+<div class="usedin">
+  <div class="u-label">▸ How LocalFlow uses this</div>
+  <p>The state drives everything you see: the menu-bar icon and the floating indicator both simply reflect the current state (a red pulse for <em>recording</em>, an orange waveform for <em>transcribing</em> and <em>cleaning</em>). Because the states are explicit, the app can't get into confused in-between conditions — pressing the key only starts recording from <em>idle</em>, and a failure anywhere lands cleanly in <em>error</em> and then back to <em>idle</em>, never stuck.</p>
+</div>
+</div>
+
+<div class="blockwrap para-block">
+<span class="tier t-par">Paragraph</span>
+<h3 class="block-h">Settings and persistence</h3>
+<p>Your choices — which hotkey, which cleanup model, VAD sensitivity, whether to show the indicator — need to survive quitting the app. LocalFlow writes them to a small <em class="term">configuration</em> file on disk (in a standard per-app support folder) and reads it back at launch, so the app remembers how you like it. This is the humble counterpart to all the neural networks: most of what makes software pleasant is careful handling of small, ordinary details like this.</p>
+</div>
+
+<div class="part">
+  <div class="pnum">XI</div>
+  <div>
+    <div class="pt-eyebrow">Part Eleven</div>
+    <h2>Engineering Lessons</h2>
+    <p class="part-intro">The concepts explain how LocalFlow works. These lessons explain what building it <em>taught</em> — the transferable ideas that outlast this one app.</p>
+  </div>
+</div>
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h" id="s-lessons">Six things this project actually taught</h3>
+
+<p><strong>1 · System integration is where local AI apps live or die.</strong> The models were the easy part — Parakeet transcribed correctly almost immediately, and the cleanup worked on the first try. Every genuinely hard problem was operating-system plumbing: permissions, code signatures, event taps, clipboards. If you are drawn to AI apps, know that the intelligence is increasingly a solved commodity you download; the craft and the pain are in wiring it cleanly into a real system.</p>
+
+<p><strong>2 · Two small models beat one big one.</strong> LocalFlow could have tried a single giant model to both transcribe and tidy. Instead it uses a fast, specialised recogniser and a small, constrained language model — a two-stage pipeline. On a 16&nbsp;GB laptop the two must coexist, and small-and-focused won on speed, memory, and, crucially, <em>control</em>: each stage does one legible job you can reason about and fix independently. Decomposition beats monolith.</p>
+
+<p><strong>3 · Constraining a language model is harder than calling one.</strong> Invoking the LLM was a single request. Making it <em>reliable</em> took real defensive work — a strict system prompt, low temperature, stripping preambles, flattening stray newlines, and a guardrail that discards the result and keeps the raw transcript if the model over-edits or stalls. Treat any generative model in a pipeline as a capable but untrusted assistant whose every output you validate. A tool that hangs or silently rewrites meaning is worse than one that pastes slightly-messy text.</p>
+
+<p><strong>4 · Verify against the source, not your memory.</strong> The audio library's interface had changed from what was assumed; reading the actual, installed version of its code — rather than trusting a remembered API — saved real time and avoided confident mistakes. For any fast-moving dependency, the version on your disk is the only source of truth.</p>
+
+<p><strong>5 · Build the headless test harness first.</strong> The command-line tool that ran the whole pipeline and printed timings was the single highest-leverage decision. It let us prove performance and quality on real audio before any interface existed, and it stayed useful for reproducing every later issue without clicking through a UI. When you can, make the thing testable from a terminal before you make it pretty.</p>
+
+<p><strong>6 · Feedback affordances are not optional polish.</strong> Your own observation while testing — "there's no way to tell it's listening" — is the real lesson made concrete. For a tool triggered by an invisible key, the on-screen indicator <em>is</em> the product, not decoration; dictation you can't tell is running feels broken even when it works perfectly. The floating "Listening…" pill exists because of exactly this.</p>
+</div>
+
+<hr class="soft">
+
+<div class="blockwrap">
+<span class="tier t-sec">Section</span>
+<h3 class="block-h">Closing: one gesture, the whole stack</h3>
+<p>We started with an electron nudged along a copper wire and ended with a cleaned sentence appearing in your editor. In between sat every layer of the modern machine: a switch made of silicon, logic made of switches, a computer made of logic, an operating system refereeing it, your voice measured into numbers, those numbers re-described as frequencies, neural networks reading meaning out of the frequencies and better writing out of the meaning, and a careful negotiation with the operating system to hear a key and place the result.</p>
+<p>That is the quiet marvel of a tool like LocalFlow: a gesture so simple you stop noticing it — hold, speak, release — rests on nearly the entire history of computing, arranged just so. You now understand the whole of it, from the electrons up. The next time text appears where your cursor was, you will know exactly what just happened, at every layer.</p>
+<p class="endnote">LocalFlow · a fully-local macOS dictation app · built and explained from first principles. Every stage in this document runs on your own Mac; nothing you say ever leaves the machine.</p>
+</div>
+
+</div>
+</main>
+</div>
+
+<script>
+(function () {
+  var btn = document.getElementById('themebtn');
+  function current() {
+    var explicit = document.documentElement.getAttribute('data-theme');
+    if (explicit) return explicit;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  btn.addEventListener('click', function () {
+    var next = current() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+  });
+
+  // Scrollspy: highlight the TOC entry nearest the top of the viewport.
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toclist a'));
+  var map = {};
+  links.forEach(function (a) {
+    var id = a.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if (el) map[id] = a;
+  });
+  var targets = Object.keys(map).map(function (id) { return document.getElementById(id); });
+  var activeId = null;
+  function onScroll() {
+    var best = null, bestTop = -Infinity;
+    var line = window.innerHeight * 0.28;
+    targets.forEach(function (el) {
+      var t = el.getBoundingClientRect().top;
+      if (t < line && t > bestTop) { bestTop = t; best = el; }
+    });
+    if (!best) best = targets[0];
+    if (best && best.id !== activeId) {
+      if (activeId && map[activeId]) map[activeId].classList.remove('active');
+      activeId = best.id;
+      if (map[activeId]) {
+        map[activeId].classList.add('active');
+        map[activeId].scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
