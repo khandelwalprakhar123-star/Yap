@@ -57,8 +57,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     // MARK: - Status icon
 
+    // The full-color app logo, shown when idle. Loaded once from the bundle
+    // and scaled to fit the menu bar. Falls back to the "mic" SF Symbol below
+    // if the resource is missing (e.g. running the raw binary, not the .app).
+    private static let logoImage: NSImage? = {
+        guard let url = Bundle.main.url(forResource: "logo", withExtension: "png"),
+              let image = NSImage(contentsOf: url) else { return nil }
+        image.size = NSSize(width: 18, height: 18)
+        image.isTemplate = false
+        return image
+    }()
+
     private func updateIcon(for state: DictationController.State) {
         guard let button = statusItem.button else { return }
+
+        // Idle: show the full-color logo when available.
+        if case .idle = state, let logo = Self.logoImage {
+            button.image = logo
+            button.toolTip = "LocalFlow — \(state.label)"
+            return
+        }
+
         let (symbol, tint): (String, NSColor?) = switch state {
         case .loadingModels: ("hourglass", nil)
         case .idle: ("mic", nil)
