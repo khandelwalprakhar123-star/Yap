@@ -13,6 +13,22 @@ mkdir -p "$APP/Contents/MacOS"
 
 cp .build/release/LocalFlowApp "$APP/Contents/MacOS/LocalFlow"
 
+# Bundle the menu-bar logo (loaded at runtime via Bundle.main).
+mkdir -p "$APP/Contents/Resources"
+cp Resources/logo.png "$APP/Contents/Resources/logo.png"
+
+# Generate the app bundle icon (Finder/Spotlight/Dock) from the 1024×1024 logo.
+echo "▸ Generating AppIcon.icns..."
+ICONSET="$(mktemp -d)/AppIcon.iconset"
+mkdir -p "$ICONSET"
+for size in 16 32 128 256 512; do
+    sips -z "$size" "$size" Resources/logo.png \
+        --out "$ICONSET/icon_${size}x${size}.png" >/dev/null
+    sips -z "$((size*2))" "$((size*2))" Resources/logo.png \
+        --out "$ICONSET/icon_${size}x${size}@2x.png" >/dev/null
+done
+iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
+
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -22,6 +38,7 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
     <key>CFBundleDisplayName</key>       <string>LocalFlow</string>
     <key>CFBundleIdentifier</key>        <string>com.localflow.app</string>
     <key>CFBundleExecutable</key>        <string>LocalFlow</string>
+    <key>CFBundleIconFile</key>          <string>AppIcon</string>
     <key>CFBundleVersion</key>           <string>1.0</string>
     <key>CFBundleShortVersionString</key><string>1.0</string>
     <key>CFBundlePackageType</key>       <string>APPL</string>
@@ -32,6 +49,10 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </dict>
 </plist>
 PLIST
+
+# Strip download/Finder xattrs (quarantine, resource forks) that make codesign
+# reject the bundle with "resource fork ... or similar detritus not allowed".
+xattr -cr "$APP"
 
 # A stable identity keeps the same TCC (permissions) grant across rebuilds.
 # Created once by Scripts/make_signing_cert.sh; ad-hoc is the fallback, but
