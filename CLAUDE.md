@@ -26,6 +26,17 @@ never use xcodebuild; build with `swift build` and `Scripts/build_app.sh`).
   Signing a bundle that has already been LAUNCHED fails with "resource fork /
   detritus not allowed" (SIP-protected provenance xattr) — always rebuild the
   bundle fresh via Scripts/build_app.sh instead of re-signing in place.
+- NEVER run the .app from inside this repo. ~/Desktop is an iCloud Drive
+  file-provider domain ("Desktop & Documents Folders" sync), and iCloud stamps
+  com.apple.FinderInfo onto the bundle at arbitrary times AFTER signing. That
+  breaks the seal (`codesign --verify` → "resource fork ... not allowed"), so the
+  bundle no longer matches its recorded TCC grant and Accessibility silently
+  drops. Symptoms are indistinguishable from app bugs: the hotkey does nothing
+  and the injected Cmd+V is swallowed, with no error anywhere — while
+  localflow-cli keeps working, because it needs no permission. build_app.sh now
+  stages in /tmp, signs there, installs to ~/Applications, and hard-fails if
+  `codesign --verify --strict` does not pass. Diagnose with that command first
+  whenever dictation goes quiet.
 - Input Monitoring is OPTIONAL: HotkeyListener falls back to NSEvent global
   monitors (Accessibility-only) for modifier-key hotkeys. CGEventTap is used
   when Input Monitoring is granted; F-keys require it.
@@ -37,6 +48,8 @@ never use xcodebuild; build with `swift build` and `Scripts/build_app.sh`).
 
 ## Test loop
 - `swift build && .build/debug/localflow-cli file <audio>` exercises the whole
-  pipeline headlessly (generate speech with `say -o test.aiff "..."`).
+  pipeline headlessly (generate speech with `say -o test.aiff "..."`). This path
+  needs no TCC permission, so it passing tells you nothing about the app's
+  hotkey/injection — check `codesign --verify --strict` for that.
 - `localflow-cli check` verifies environment. App: `./Scripts/build_app.sh &&
-  open dist/LocalFlow.app` (menu-bar only; no dock icon).
+  open ~/Applications/LocalFlow.app` (menu-bar only; no dock icon).
