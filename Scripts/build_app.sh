@@ -7,8 +7,18 @@ cd "$(dirname "$0")/.."
 echo "▸ Building release binary..."
 swift build -c release --product LocalFlowApp
 
-APP=dist/LocalFlow.app
-rm -rf "$APP"
+# The repo lives under ~/Desktop, which is an iCloud Drive file-provider domain
+# ("Desktop & Documents Folders" sync). iCloud stamps com.apple.FinderInfo onto
+# any .app there — at arbitrary times, LONG after signing — which makes
+# `codesign --verify` fail with "resource fork ... not allowed". A broken seal
+# no longer matches the recorded TCC grant, so Accessibility silently goes away:
+# the hotkey stops firing and injected Cmd+V events are dropped with no error.
+# So: stage the bundle in /tmp (never synced), sign it there, then install it to
+# ~/Applications (also outside any file-provider domain). Never ship from dist/.
+STAGE="$(mktemp -d)"
+APP="$STAGE/LocalFlow.app"
+INSTALL_DIR="$HOME/Applications"
+INSTALLED="$INSTALL_DIR/LocalFlow.app"
 mkdir -p "$APP/Contents/MacOS"
 
 cp .build/release/LocalFlowApp "$APP/Contents/MacOS/LocalFlow"
@@ -65,6 +75,25 @@ else
     codesign --force --sign - --identifier com.localflow.app "$APP"
 fi
 
-echo "✓ Built $APP"
+# Install outside the iCloud-synced tree. --noextattr/--norsrc/--noqtn keep the
+# copy free of the xattrs that would invalidate the seal.
+echo "▸ Installing to $INSTALLED..."
+mkdir -p "$INSTALL_DIR"
+rm -rf "$INSTALLED"
+ditto --noextattr --norsrc --noqtn "$APP" "$INSTALLED"
+xattr -cr "$INSTALLED" 2>/dev/null || true
+rm -rf "$STAGE"
+
+# Guard: a bundle whose seal does not validate loses its Accessibility grant at
+# runtime, and the only symptom is that dictation silently does nothing. Fail
+# here rather than let that reach the menu bar.
+if ! codesign --verify --strict "$INSTALLED" 2>/dev/null; then
+    echo "✗ Signature does not validate — Accessibility would silently fail:" >&2
+    codesign --verify --strict --verbose=2 "$INSTALLED" >&2 || true
+    exit 1
+fi
+
+echo "✓ Built and verified $INSTALLED"
 echo
-echo "Run it with:   open $PWD/$APP"
+echo "Run it with:   open $INSTALLED"
+echo "(Quit any older copy first — a stale dist/LocalFlow.app may still be running.)"
